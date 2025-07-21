@@ -48,15 +48,23 @@ function LoginScreen() {
 
     try {
       const result = await authService.sendOTP(mobileNumber);
-      if (result.st === 1) {
+      if (result.success) {
         // Allow both CDS and manager roles
-        if (result.role === "cds" || result.role === "manager") {
+        if (
+          result.role === "cds" ||
+          result.role === "manager" ||
+          result.role === "admin"
+        ) {
           setShowOtp(true);
         } else {
           setError("Access denied. Only CDS and Manager users can login here.");
         }
       } else {
-        setError(result.msg || "Invalid mobile number");
+        setError(
+          typeof result.error === "string"
+            ? result.error
+            : JSON.stringify(result.error || "Invalid mobile number")
+        );
       }
     } catch (err) {
       setError("Failed to send OTP");
@@ -78,10 +86,14 @@ function LoginScreen() {
 
     try {
       const result = await authService.verifyOTP(mobileNumber, otp);
-      if (result.st === 1) {
+      if (result.success) {
         navigate("/orders");
       } else {
-        setError(result.msg || "Invalid OTP");
+        setError(
+          typeof result.error === "string"
+            ? result.error
+            : JSON.stringify(result.error || "Invalid OTP")
+        );
       }
     } catch (err) {
       setError("Failed to verify OTP");
