@@ -7,14 +7,15 @@ function OrdersScreen() {
   const [screenSize, setScreenSize] = useState(window.innerWidth);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [outletName, setOutletName] = useState(""); // <-- Add outletName state
   const authData = JSON.parse(localStorage.getItem("authData"));
-  
+
   // Create axios instance with default config
   const api = axios.create({
-    baseURL: 'https://men4u.xyz/v2',
+    baseURL: "https://men4u.xyz/v2",
     headers: {
-      'Content-Type': 'application/json',
-    }
+      "Content-Type": "application/json",
+    },
   });
 
   // Add interceptor to handle 401 errors globally
@@ -39,15 +40,16 @@ function OrdersScreen() {
       setLoading(false);
       return;
     }
-  
+
     if (!accessToken) {
       console.error("No access token found");
       window.location.href = "/login";
       return;
     }
-  
+
     try {
-      const { data } = await api.post('/common/cds_kds_order_listview',
+      const { data } = await api.post(
+        "/common/cds_kds_order_listview",
         { outlet_id },
         {
           headers: {
@@ -55,7 +57,18 @@ function OrdersScreen() {
           },
         }
       );
-  
+
+      // Extract outlet name from any order (preferably the first available)
+      let outletNameResp = "";
+      if (data.placed_orders?.length) {
+        outletNameResp = data.placed_orders[0].outlet_name;
+      } else if (data.cooking_orders?.length) {
+        outletNameResp = data.cooking_orders[0].outlet_name;
+      } else if (data.paid_orders?.length) {
+        outletNameResp = data.paid_orders[0].outlet_name;
+      }
+      setOutletName(outletNameResp);
+
       // Map orders with their respective statuses
       const placedOrders = (data.placed_orders || []).map((order) => ({
         ...order,
@@ -69,7 +82,7 @@ function OrdersScreen() {
         ...order,
         status: "completed",
       }));
-      
+
       setOrders([...placedOrders, ...ongoingOrders, ...completedOrders]);
       setError("");
     } catch (error) {
@@ -79,8 +92,7 @@ function OrdersScreen() {
       setLoading(false);
     }
   };
-  
-  
+
   useEffect(() => {
     fetchOrders();
     const intervalId = setInterval(fetchOrders, 10000);
@@ -140,16 +152,20 @@ function OrdersScreen() {
             <i className="bx bx-restaurant text-warning fs-1"></i>
           </span>
           <span className={`${fontSizes.itemCount} fw-bold`}>
-            {Array.isArray(order.table_number) ? order.table_number.join(", ") : ""}
+            {Array.isArray(order.table_number)
+              ? order.table_number.join(", ")
+              : ""}
           </span>
         </div>
       </div>
-      
+
       {/* Additional Order Details */}
       <div className="order-details">
         <div className="d-flex justify-content-between mb-2">
           <span className="text-muted">Type:</span>
-          <span className="fw-semibold text-capitalize">{order.order_type}</span>
+          <span className="fw-semibold text-capitalize">
+            {order.order_type}
+          </span>
         </div>
         <div className="d-flex justify-content-between mb-2">
           <span className="text-muted">Amount:</span>
@@ -159,13 +175,18 @@ function OrdersScreen() {
           <span className="text-muted">Time:</span>
           <span className="fw-semibold">{order.date_time}</span>
         </div>
-        
+
         {/* Menu Items */}
         <div className="mt-3">
           <h6 className="mb-2">Items:</h6>
           {order.menu_details?.map((item, index) => (
-            <div key={index} className="d-flex justify-content-between align-items-center mb-1">
-              <span>{item.menu_name} x{item.quantity}</span>
+            <div
+              key={index}
+              className="d-flex justify-content-between align-items-center mb-1"
+            >
+              <span>
+                {item.menu_name} x{item.quantity}
+              </span>
               <span>₹{item.price}</span>
             </div>
           ))}
@@ -176,7 +197,7 @@ function OrdersScreen() {
 
   return (
     <>
-      <Header />
+      <Header outletName={outletName} />
       <div className="container-fluid p-0">
         <div className="row g-0 min-vh-100">
           {/* Left Side - Placed Orders */}
@@ -209,7 +230,7 @@ function OrdersScreen() {
               <h1
                 className={`${fontSizes.header} text-white text-center fw-bold mb-3 mb-md-4`}
               >
-                COOKING 
+                COOKING
               </h1>
               {loading ? (
                 <p className="text-white text-center">Loading...</p>
