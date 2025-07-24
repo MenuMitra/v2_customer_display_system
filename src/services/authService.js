@@ -7,7 +7,7 @@ export const authService = {
     try {
       const response = await axios.post(
         `${BASE_URL}/v2/common/login`,
-        { mobile: mobileNumber, app_type: "pos" },
+        { mobile: mobileNumber, app_type: "cds" },
         {
           headers: { "Content-Type": "application/json" },
         }
@@ -17,7 +17,7 @@ export const authService = {
         success: true,
         role: response.data.role,
         message: response.data.detail,
-        app_type: "pos",
+        app_type: "cds",
       };
     } catch (error) {
       console.error("OTP Send Error:", error);

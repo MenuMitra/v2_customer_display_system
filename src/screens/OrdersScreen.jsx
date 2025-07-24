@@ -142,7 +142,7 @@ function OrdersScreen() {
 
   // Updated OrderCard component to show more details
   const OrderCard = ({ order }) => (
-    <div className="bg-white rounded-3 mb-3 p-3 p-md-4 order-card">
+    <div className="bg-white rounded-3 mb-1 p-1 p-md-2 order-card">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2 className={`${fontSizes.orderNumber} fw-bold mb-0`}>
           #{order.order_number}
@@ -151,45 +151,11 @@ function OrdersScreen() {
           <span className={`${fontSizes.itemCount} me-2`}>
             <i className="bx bx-restaurant text-warning fs-1"></i>
           </span>
-          <span className={`${fontSizes.itemCount} fw-bold`}>
+          <span className={`${fontSizes.itemCount} fs-1`}>
             {Array.isArray(order.table_number)
               ? order.table_number.join(", ")
               : ""}
           </span>
-        </div>
-      </div>
-
-      {/* Additional Order Details */}
-      <div className="order-details">
-        <div className="d-flex justify-content-between mb-2">
-          <span className="text-muted">Type:</span>
-          <span className="fw-semibold text-capitalize">
-            {order.order_type}
-          </span>
-        </div>
-        <div className="d-flex justify-content-between mb-2">
-          <span className="text-muted">Amount:</span>
-          <span className="fw-semibold">₹{order.total_bill_amount}</span>
-        </div>
-        <div className="d-flex justify-content-between">
-          <span className="text-muted">Time:</span>
-          <span className="fw-semibold">{order.date_time}</span>
-        </div>
-
-        {/* Menu Items */}
-        <div className="mt-3">
-          <h6 className="mb-2">Items:</h6>
-          {order.menu_details?.map((item, index) => (
-            <div
-              key={index}
-              className="d-flex justify-content-between align-items-center mb-1"
-            >
-              <span>
-                {item.menu_name} x{item.quantity}
-              </span>
-              <span>₹{item.price}</span>
-            </div>
-          ))}
         </div>
       </div>
     </div>
