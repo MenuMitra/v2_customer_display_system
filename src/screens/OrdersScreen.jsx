@@ -12,7 +12,7 @@ function OrdersScreen() {
 
   // Create axios instance with default config
   const api = axios.create({
-    baseURL: "https://men4u.xyz/v2",
+    baseURL: "https://ghanish.in/v2",
     headers: {
       "Content-Type": "application/json",
     },

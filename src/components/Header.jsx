@@ -15,7 +15,7 @@ function Header({ outletName }) {
           "Entjx4wL350fdkAPvRs2YHKeBgImyElMnk5USx1QYz5UbWGooIt16BLTqGMsCdfzQPn9SKg3YtkQ94KHHqk.cYjkEmN.8nvp-Qyr",
       };
 
-      const response = await fetch("https://men4u.xyz/common_api/logout", {
+      const response = await fetch("https://ghanish.in/common_api/logout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
