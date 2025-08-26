@@ -37,7 +37,10 @@ function Header({ outletName }) {
   };
 
   return (
-    <header className="bg-dark">
+
+
+    
+    <header className="bg-dark ">
       <nav className="navbar navbar-expand-lg navbar-dark py-2">
         <div className="container-fluid px-5">
           {/* Brand/Logo */}

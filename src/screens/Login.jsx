@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { authService } from "../services/authService";
+import Footer from "../components/Footer";
 
 function Login() {
   const [mobileNumber, setMobileNumber] = useState("");
@@ -45,14 +46,12 @@ function Login() {
     newOtpValues[index] = value;
     setOtpValues(newOtpValues);
 
-    // Move to next input if value is entered
     if (value !== "" && index < 3) {
       otpRefs[index + 1].current.focus();
     }
   };
 
   const handleKeyDown = (index, e) => {
-    // Handle backspace
     if (e.key === "Backspace" && !otpValues[index] && index > 0) {
       otpRefs[index - 1].current.focus();
     }
@@ -73,7 +72,6 @@ function Login() {
       const response = await authService.verifyOTP(mobileNumber, otp);
       
       if (response.success) {
-        // Navigate to orders page
         navigate("/orders");
       } else {
         setError(response.error || "Invalid OTP");
@@ -88,16 +86,16 @@ function Login() {
   return (
     <>
       <div className="container d-flex align-items-center justify-content-center min-vh-100">
-        <div className="card rounded-4" style={{ maxWidth: "800px", height: "400px", width: "100%" }}>
+        <div className="card rounded-4 login-card shadow-sm" style={{ maxWidth: "600px", width: "100%" }}>
           {/* Logo */}
           <div className="app-brand justify-content-center mt-5">
-            <Link to="/" className="app-brand-link gap-3">
+            <Link to="/" className="app-brand-link gap-2">
               <span className="app-brand-logo demo">
                 <span className="text-primary">
                   <img
                     src={logo}
                     alt="MenuMitra"
-                    style={{ width: "40px", height: "40px" }}
+                    style={{ width: "50px", height: "50px" }}
                   />
                 </span>
               </span>
@@ -106,25 +104,25 @@ function Login() {
               </span>
             </Link>
           </div>
-          <span className="app-brand-text demo text-heading fw-semibold text-center pt-5">
+          <span className="app-brand-text demo text-heading fw-semibold text-center pt-3" style={{ fontSize: "2rem", fontWeight: "bold", color: "#1a1a1a" }}>
             Customer Display System
           </span>
           {/* /Logo */}
-          <div className="card-body pt-4">
+          <div className="card-body pt-5 pb-4">
             <form
               id="formAuthentication"
-              className="mb-5 fv-plugins-bootstrap5 fv-plugins-framework"
+              className="mb-3 fv-plugins-bootstrap5 fv-plugins-framework"
               onSubmit={showOtpInput ? handleVerifyOTP : handleSendOTP}
               noValidate="novalidate"
             >
               {error && (
-                <div className="alert alert-danger mb-3" role="alert">
+                <div className="alert alert-danger mb-3" role="alert" style={{ fontSize: "1rem" }}>
                   {error}
                 </div>
               )}
               
               {!showOtpInput ? (
-                <div className="form-floating form-floating-outline mb-5 form-control-validation fv-plugins-icon-container">
+                <div className="form-floating form-floating-outline mb-4">
                   <input
                     type="text"
                     className="form-control"
@@ -134,22 +132,23 @@ function Login() {
                     value={mobileNumber}
                     onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     autoFocus
+                    style={{ fontSize: "1.2rem", padding: "15px" }}
                   />
-                  <label htmlFor="mobile">Mobile Number</label>
+                  <label htmlFor="mobile" style={{ fontSize: "1.1rem" }}>Mobile Number</label>
                 </div>
               ) : (
                 <>
-                  <div className="text-center mb-4">
+                  <div className="text-center mb-4" style={{ fontSize: "1.1rem" }}>
                     Enter the 4-digit code sent to {mobileNumber}
                   </div>
-                  <div className="d-flex justify-content-center gap-3 mb-5">
+                  <div className="d-flex justify-content-center gap-3 mb-4">
                     {otpValues.map((value, index) => (
                       <input
                         key={index}
                         ref={otpRefs[index]}
                         type="text"
                         className="form-control text-center"
-                        style={{ width: "50px", height: "50px" }}
+                        style={{ width: "60px", height: "60px", fontSize: "1.5rem", padding: "10px" }}
                         value={value}
                         onChange={(e) => handleOtpChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
@@ -161,11 +160,12 @@ function Login() {
                 </>
               )}
               
-              <div className="mb-5">
+              <div className="mb-4">
                 <button
-                  className="btn bg-primary text-white d-grid w-100 waves-effect waves-light"
+                  className="btn btn-primary d-grid w-100"
                   type="submit"
                   disabled={loading}
+                  style={{ padding: "15px", fontSize: "1.2rem" }}
                 >
                   {loading ? (
                     <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -177,58 +177,8 @@ function Login() {
                 </button>
               </div>
             </form>
-
-            {/* Footer links */}
-            <div className="d-flex flex-column flex-md-row justify-content-center align-items-center gap-4 mt-4 pt-4 pb-5 border-bottom fs-16">
-              <Link to="https://menumitra.com/terms_conditions" target="_blank" className="text-secondary">
-                Terms and Conditions
-              </Link>
-              <Link to="https://menumitra.com/privacy_policy" target="_blank" className="text-secondary">
-                Privacy Policy
-              </Link>
-              <Link to="https://menumitra.com/cookie_policy" target="_blank" className="text-secondary">
-                Cookie Policy
-              </Link>
-              <Link to="https://menumitra.com/request_data_removal" target="_blank" className="text-secondary">
-                Request Data Removal
-              </Link>
-            </div>
-            
-            {/* Social Media Links */}
-            <div className="d-flex justify-content-center gap-2 mt-5">
-              <a
-                href="https://www.facebook.com/people/Menu-Mitra/61565082412478/"
-                className="btn btn-icon btn-lg rounded-pill btn-text-facebook waves-effect"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i className="fa-brands fa-facebook-f" />
-              </a>
-              <a
-                href="https://www.instagram.com/menumitra/"
-                className="btn btn-icon btn-lg rounded-pill btn-text-instagram waves-effect"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i className="fa-brands fa-instagram" />
-              </a>
-              <a
-                href="https://www.youtube.com/@menumitra"
-                className="btn btn-icon btn-lg rounded-pill btn-text-youtube waves-effect"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i className="fa-brands fa-youtube" />
-              </a>
-              <a
-                href="https://x.com/MenuMitra"
-                className="btn btn-icon btn-lg rounded-pill btn-text-twitter waves-effect"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i className="fa-brands fa-x-twitter" />
-              </a>
-            </div>
+            {/* Footer */}
+            <Footer />
           </div>
         </div>
       </div>
