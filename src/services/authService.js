@@ -1,5 +1,5 @@
 import axios from "axios";
-const BASE_URL = "https://ghanish.in";
+const BASE_URL = "https://men4u.xyz";
 
 export const authService = {
   // Send OTP
