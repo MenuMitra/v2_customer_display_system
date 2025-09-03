@@ -57,7 +57,7 @@ export const authService = {
           device_id: deviceId,
           device_model: "Laptop 122",
           fcm_token: fcmToken,
-          app_type: "pos",
+          app_type: "cds",
         },
         {
           headers: { "Content-Type": "application/json" },
