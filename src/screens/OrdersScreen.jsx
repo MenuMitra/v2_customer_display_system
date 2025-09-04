@@ -5,9 +5,9 @@ import Header from "../components/Header";
 function OrdersScreen() {
   const [orders, setOrders] = useState([]);
   const [screenSize, setScreenSize] = useState(window.innerWidth);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [outletName, setOutletName] = useState(""); // <-- Add outletName state
+  const [outletName, setOutletName] = useState("");
+  const [filter, setFilter] = useState("today"); // Default to "today"
   const authData = JSON.parse(localStorage.getItem("authData"));
 
   // Create axios instance with default config
@@ -30,14 +30,13 @@ function OrdersScreen() {
     }
   );
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (retryCount = 3, delay = 2000) => {
     const authData = JSON.parse(localStorage.getItem("authData"));
     const outlet_id = authData?.outlet_id;
     const accessToken = authData?.access_token;
 
     if (!outlet_id) {
-      setError("Outlet ID not found in localStorage");
-      setLoading(false);
+      setError("Outlet ID not found in localStorage. Please log in again.");
       return;
     }
 
@@ -50,13 +49,18 @@ function OrdersScreen() {
     try {
       const { data } = await api.post(
         "/common/cds_kds_order_listview",
-        { outlet_id },
+        { outlet_id, date_filter: filter },
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         }
       );
+
+      // Validate API response structure
+      if (!data || (!data.placed_orders && !data.cooking_orders && !data.paid_orders)) {
+        throw new Error("Invalid response structure from server");
+      }
 
       // Extract outlet name from any order (preferably the first available)
       let outletNameResp = "";
@@ -86,20 +90,33 @@ function OrdersScreen() {
       setOrders([...placedOrders, ...ongoingOrders, ...completedOrders]);
       setError("");
     } catch (error) {
-      setError("Error fetching orders");
+      let errorMessage = "Failed to fetch orders. Please try again.";
+      if (error.response) {
+        errorMessage = `Server error (${error.response.status}): ${
+          error.response.data?.message || "Unable to fetch orders"
+        }`;
+      } else if (error.request) {
+        if (retryCount > 0) {
+          console.warn(`Retrying fetchOrders... (${retryCount} attempts left)`);
+          setTimeout(() => fetchOrders(retryCount - 1, delay * 2), delay);
+          return;
+        }
+        errorMessage = "Network error: Unable to reach the server. Please check your connection.";
+      } else {
+        errorMessage = error.message || "An unexpected error occurred.";
+      }
+      setError(errorMessage);
       console.error("Order List View Error:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrders();
-    const intervalId = setInterval(fetchOrders, 10000);
+    fetchOrders(); // Initial fetch
+    const intervalId = setInterval(() => fetchOrders(), 60000); // Refresh every 1 minute
 
     // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
-  }, []);
+  }, [filter]);
 
   // Handle screen resize
   useEffect(() => {
@@ -163,7 +180,10 @@ function OrdersScreen() {
 
   return (
     <>
-      <Header outletName={outletName} />
+      <Header outletName={outletName} filter={filter} onFilterChange={(newFilter) => {
+        setFilter(newFilter);
+        fetchOrders(); // Trigger fetch without loading for filter change
+      }} />
       <div className="container-fluid p-0">
         <div className="row g-0 min-vh-100">
           {/* Left Side - Placed Orders */}
@@ -174,10 +194,16 @@ function OrdersScreen() {
               >
                 PLACED
               </h1>
-              {loading ? (
-                <p className="text-white text-center">Loading... </p>
-              ) : error ? (
-                <p className="text-danger text-center">{error}</p>
+              {error ? (
+                <div className="alert alert-danger text-center" role="alert">
+                  {error}
+                  <button
+                    className="btn btn-sm btn-primary ms-2"
+                    onClick={() => fetchOrders()}
+                  >
+                    Retry
+                  </button>
+                </div>
               ) : (
                 <div className="orders-container">
                   {orders
@@ -198,8 +224,16 @@ function OrdersScreen() {
               >
                 COOKING
               </h1>
-              {loading ? (
-                <p className="text-white text-center">Loading...</p>
+              {error ? (
+                <div className="alert alert-danger text-center" role="alert">
+                  {error}
+                  <button
+                    className="btn btn-sm btn-primary ms-2"
+                    onClick={() => fetchOrders()}
+                  >
+                    Retry
+                  </button>
+                </div>
               ) : (
                 <div className="orders-container">
                   {orders
@@ -220,8 +254,16 @@ function OrdersScreen() {
               >
                 PAID
               </h1>
-              {loading ? (
-                <p className="text-white text-center">Loading...</p>
+              {error ? (
+                <div className="alert alert-danger text-center" role="alert">
+                  {error}
+                  <button
+                    className="btn btn-sm btn-primary ms-2"
+                    onClick={() => fetchOrders()}
+                  >
+                    Retry
+                  </button>
+                </div>
               ) : (
                 <div className="orders-container">
                   {orders

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-function Header({ outletName }) {
+function Header({ outletName, filter, onFilterChange }) {
   const location = useLocation();
   const userId = localStorage.getItem("user_id");
   const navigate = useNavigate();
@@ -91,7 +91,37 @@ function Header({ outletName }) {
             </div>
 
             {/* Navigation Links */}
-            <ul className="navbar-nav ms-auto align-items-center">
+            <ul className="navbar-nav ms-auto align-items-center" style={{ gap: "8px" }}>
+              <li className="nav-item">
+                <div className="btn-group" role="group">
+                  <button
+                    type="button"
+                    className={`btn ${filter === "today" ? "btn-primary" : "btn-outline-primary"}`}
+                    onClick={() => onFilterChange("today")}
+                    style={{
+                      backgroundColor: filter === "today" ? "#007bff" : "transparent",
+                      color: filter === "today" ? "#fff" : "#007bff",
+                      borderColor: "#007bff",
+                      transition: "background-color 0.2s, color 0.2s",
+                    }}
+                  >
+                    Today
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${filter === "all" ? "btn-primary" : "btn-outline-primary"}`}
+                    onClick={() => onFilterChange("all")}
+                    style={{
+                      backgroundColor: filter === "all" ? "#007bff" : "transparent",
+                      color: filter === "all" ? "#fff" : "#007bff",
+                      borderColor: "#007bff",
+                      transition: "background-color 0.2s, color 0.2s",
+                    }}
+                  >
+                    All
+                  </button>
+                </div>
+              </li>
               <li className="nav-item fs-3">
                 <div
                   className="nav-link px-3 text-white fs-3"
