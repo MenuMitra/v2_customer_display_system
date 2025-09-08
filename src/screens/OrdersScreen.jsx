@@ -159,13 +159,13 @@ function OrdersScreen() {
 
   // Updated OrderCard component to show more details
   const OrderCard = ({ order }) => (
-    <div className="bg-white rounded-3 mb-1 p-1 p-md-2 order-card">
-      <div className="d-flex justify-content-between align-items-center mb-3">
+    <div className="bg-white rounded-3 mb-2 p-0.9 p-md-0.9 order-card">
+      <div className="d-flex justify-content-between align-items-center mb-2 p-3">
         <h2 className={`${fontSizes.orderNumber} fw-bold mb-0`}>
           #{order.order_number}
         </h2>
         <div className="d-flex align-items-center">
-          <span className={`${fontSizes.itemCount} me-2`}>
+          <span className={`${fontSizes.itemCount} me-3`}>
             <i className="bx bx-restaurant text-warning fs-1"></i>
           </span>
           <span className={`${fontSizes.itemCount} fs-1`}>
@@ -217,34 +217,30 @@ function OrdersScreen() {
           </div>
 
           {/* Center - Ongoing Orders */}
-          <div className="col-12 col-md-4 bg-warning">
-            <div className="p-2 p-sm-3 p-md-4">
-              <h1
-                className={`${fontSizes.header} text-white text-center fw-bold mb-3 mb-md-4`}
-              >
-                COOKING
-              </h1>
-              {error ? (
-                <div className="alert alert-danger text-center" role="alert">
-                  {error}
-                  <button
-                    className="btn btn-sm btn-primary ms-2"
-                    onClick={() => fetchOrders()}
-                  >
-                    Retry
-                  </button>
-                </div>
-              ) : (
-                <div className="orders-container">
-                  {orders
-                    .filter((order) => order.status === "ongoing")
-                    .map((order) => (
-                      <OrderCard key={order.order_id} order={order} />
-                    ))}
-                </div>
-              )}
-            </div>
-          </div>
+<div className="col-12 col-md-4 bg-warning cooking-section">
+  <div className="p-2 p-sm-2 p-md-2">
+    <h1 className={`${fontSizes.header} text-white text-center fw-bold mb-3 mb-md-1`}>
+      COOKING
+    </h1>
+    {error ? (
+      <div className="alert alert-danger text-center" role="alert">
+        {error}
+        <button className="btn btn-sm btn-primary ms-2" onClick={() => fetchOrders()}>
+          Retry
+        </button>
+      </div>
+    ) : (
+      <div className="orders-container">
+        {orders
+          .filter((order) => order.status === "ongoing")
+          .map((order) => (
+            <OrderCard key={order.order_id} order={order} />
+          ))}
+      </div>
+    )}
+  </div>
+</div>
+
 
           {/* Right - Completed Orders */}
           <div className="col-12 col-md-4 bg-success">

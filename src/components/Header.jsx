@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
+
 
 function Header({ outletName, filter, onFilterChange }) {
   const location = useLocation();
@@ -67,11 +69,20 @@ function Header({ outletName, filter, onFilterChange }) {
         <nav className="navbar navbar-expand-lg navbar-dark py-2">
           <div className="container-fluid px-5">
             {/* Brand/Logo */}
-            <div className="navbar-brand d-flex align-items-center">
-              <span className="fs-4 fw-bold">
-                {outletName ? outletName.toUpperCase() : ""}
-              </span>
-            </div>
+           <div className="navbar-brand d-flex align-items-center gap-2">
+  <img
+    src={logo}
+    alt="Menumitra Logo"
+    style={{ height: "35px", width: "35px", objectFit: "contain" }}
+  />
+  <span className="fs-4 fw-bold text-dark">Menumitra</span>
+  {outletName && (
+    <span className="fs-6 fw-semibold ms-2 text-muted">
+      {outletName.toUpperCase()}
+    </span>
+  )}
+</div>
+
 
             {/* Center Title */}
             <div
@@ -79,14 +90,14 @@ function Header({ outletName, filter, onFilterChange }) {
                 position: "absolute",
                 top: "50%",
                 left: "50%",
-                transform: "translate(-50%, -50%)",
-                fontSize: "24px",
-                fontWeight: "900",
-                color: "#000",
-                zIndex: 1,
+               transform: "translate(-50%, -50%)",
+               fontSize: "36px",   // increased size
+               fontWeight: "bold", // not bold
+              color: "#000",
+              zIndex: 1,
               }}
             >
-              CUSTOMER DISPLAY SYSTEM
+              C D S
             </div>
 
             {/* Navigation Links */}
@@ -177,23 +188,25 @@ function Header({ outletName, filter, onFilterChange }) {
               </li>
 
               {/* Logout Icon */}
-              <li className="nav-item">
-                <div
-                  className="nav-link d-flex align-items-center justify-content-center"
-                  style={{
-                    cursor: "pointer",
-                    color: "red",
-                    border: "2px solid red",
-                    borderRadius: "8px",
-                    width: "40px",
-                    height: "40px",
-                    fontSize: "20px", // same size as fullscreen
-                  }}
-                  onClick={() => setShowLogoutConfirm(true)}
-                >
-                  <i className="bx bx-log-out"></i>
-                </div>
-              </li>
+              {/* Logout Icon */}
+<li className="nav-item">
+  <div
+    className="nav-link d-flex align-items-center justify-content-center"
+    style={{
+      cursor: "pointer",
+      color: "red",
+      border: "2px solid red",
+      borderRadius: "8px",
+      width: "40px",
+      height: "40px",
+      fontSize: "20px",
+    }}
+    onClick={() => setShowLogoutConfirm(true)}
+  >
+    <i className="fa-solid fa-right-from-bracket"></i>
+  </div>
+</li>
+
             </ul>
           </div>
         </nav>
@@ -250,22 +263,23 @@ function Header({ outletName, filter, onFilterChange }) {
                 <div className="modal-body text-center">
                   <p className="fw-bold">Are you sure you want to logout?</p>
                 </div>
-                <div className="modal-footer justify-content-center">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => handleLogoutConfirm(false)}
-                  >
-                    <i className="fa-solid fa-xmark me-1"></i> Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    onClick={() => handleLogoutConfirm(true)}
-                  >
-                    <i className="fa-solid fa-check me-1"></i> Exit Me
-                  </button>
-                </div>
+                <div className="modal-footer justify-content-between">
+        <button
+        type="button"
+    className="btn btn-secondary"
+    onClick={() => handleLogoutConfirm(false)}
+  >
+    <i className="fa-solid fa-xmark me-1"></i> Cancel
+  </button>
+ <button
+  type="button"
+  className="btn btn-danger"
+  onClick={() => handleLogoutConfirm(true)}
+>
+  <i className="fa-solid fa-right-from-bracket me-2"></i> Exit Me
+</button>
+</div>
+
               </div>
             </div>
           </div>
