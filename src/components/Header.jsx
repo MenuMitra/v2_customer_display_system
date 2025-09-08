@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function Header({ outletName, filter, onFilterChange }) {
   const location = useLocation();
-  const userId = localStorage.getItem("user_id");
   const navigate = useNavigate();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
@@ -64,7 +63,7 @@ function Header({ outletName, filter, onFilterChange }) {
         Testing Environment
       </div>
 
-      <header className="bg-dark" style={{ marginTop: "25px" }}>
+      <header className="bg-white shadow-sm" style={{ marginTop: "25px" }}>
         <nav className="navbar navbar-expand-lg navbar-dark py-2">
           <div className="container-fluid px-5">
             {/* Brand/Logo */}
@@ -83,23 +82,29 @@ function Header({ outletName, filter, onFilterChange }) {
                 transform: "translate(-50%, -50%)",
                 fontSize: "24px",
                 fontWeight: "900",
-                color: "#fcfbfbff",
+                color: "#000",
                 zIndex: 1,
               }}
             >
-              Customer Display System
+              CUSTOMER DISPLAY SYSTEM
             </div>
 
             {/* Navigation Links */}
-            <ul className="navbar-nav ms-auto align-items-center" style={{ gap: "8px" }}>
+            <ul
+              className="navbar-nav ms-auto align-items-center"
+              style={{ gap: "8px" }}
+            >
               <li className="nav-item">
                 <div className="btn-group" role="group">
                   <button
                     type="button"
-                    className={`btn ${filter === "today" ? "btn-primary" : "btn-outline-primary"}`}
+                    className={`btn ${
+                      filter === "today" ? "btn-primary" : "btn-outline-primary"
+                    }`}
                     onClick={() => onFilterChange("today")}
                     style={{
-                      backgroundColor: filter === "today" ? "#007bff" : "transparent",
+                      backgroundColor:
+                        filter === "today" ? "#007bff" : "transparent",
                       color: filter === "today" ? "#fff" : "#007bff",
                       borderColor: "#007bff",
                       transition: "background-color 0.2s, color 0.2s",
@@ -109,10 +114,13 @@ function Header({ outletName, filter, onFilterChange }) {
                   </button>
                   <button
                     type="button"
-                    className={`btn ${filter === "all" ? "btn-primary" : "btn-outline-primary"}`}
+                    className={`btn ${
+                      filter === "all" ? "btn-primary" : "btn-outline-primary"
+                    }`}
                     onClick={() => onFilterChange("all")}
                     style={{
-                      backgroundColor: filter === "all" ? "#007bff" : "transparent",
+                      backgroundColor:
+                        filter === "all" ? "#007bff" : "transparent",
                       color: filter === "all" ? "#fff" : "#007bff",
                       borderColor: "#007bff",
                       transition: "background-color 0.2s, color 0.2s",
@@ -122,10 +130,20 @@ function Header({ outletName, filter, onFilterChange }) {
                   </button>
                 </div>
               </li>
-              <li className="nav-item fs-3">
+
+              {/* Fullscreen Icon */}
+              <li className="nav-item">
                 <div
-                  className="nav-link px-3 text-white fs-3"
-                  style={{ cursor: "pointer" }}
+                  className="nav-link d-flex align-items-center justify-content-center"
+                  style={{
+                    cursor: "pointer",
+                    color: "grey",
+                    border: "2px solid grey",
+                    borderRadius: "8px",
+                    width: "40px",
+                    height: "40px",
+                    fontSize: "20px", // reduced size
+                  }}
                   onClick={() => {
                     if (location.pathname === "/orders") {
                       const container = document.querySelector(
@@ -133,11 +151,20 @@ function Header({ outletName, filter, onFilterChange }) {
                       );
                       if (container && container.requestFullscreen) {
                         container.requestFullscreen();
-                      } else if (container && container.webkitRequestFullscreen) {
+                      } else if (
+                        container &&
+                        container.webkitRequestFullscreen
+                      ) {
                         container.webkitRequestFullscreen();
-                      } else if (container && container.mozRequestFullScreen) {
+                      } else if (
+                        container &&
+                        container.mozRequestFullScreen
+                      ) {
                         container.mozRequestFullScreen();
-                      } else if (container && container.msRequestFullscreen) {
+                      } else if (
+                        container &&
+                        container.msRequestFullscreen
+                      ) {
                         container.msRequestFullscreen();
                       }
                     } else {
@@ -148,11 +175,21 @@ function Header({ outletName, filter, onFilterChange }) {
                   <i className="bx bx-fullscreen"></i>
                 </div>
               </li>
-              <li className="nav-item fs-3">
+
+              {/* Logout Icon */}
+              <li className="nav-item">
                 <div
-                  className="nav-link px-3 text-danger fs-3"
+                  className="nav-link d-flex align-items-center justify-content-center"
+                  style={{
+                    cursor: "pointer",
+                    color: "red",
+                    border: "2px solid red",
+                    borderRadius: "8px",
+                    width: "40px",
+                    height: "40px",
+                    fontSize: "20px", // same size as fullscreen
+                  }}
                   onClick={() => setShowLogoutConfirm(true)}
-                  style={{ cursor: "pointer" }}
                 >
                   <i className="bx bx-log-out"></i>
                 </div>
@@ -188,41 +225,45 @@ function Header({ outletName, filter, onFilterChange }) {
               transform: "translateX(-50%)",
               zIndex: 1050,
               width: "100%",
-              maxWidth: "400px",
-              margin: "0 auto",
+              maxWidth: "320px",
             }}
           >
             <div className="modal-dialog" style={{ margin: 0 }}>
-              <div className="modal-content">
-                <div className="modal-header">
-                  <i
-                    className="fa-solid fa-right-from-bracket"
-                    style={{ fontSize: 24, marginRight: 10, color: "#dc3545" }}
-                  ></i>
-                  <h5 className="modal-title">Confirm Logout</h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setShowLogoutConfirm(false)}
-                  ></button>
+              <div
+                className="modal-content"
+                style={{
+                  border: "2px solid #dc3545",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                }}
+              >
+                {/* Centered Header with Red Icon */}
+                <div className="modal-header d-flex justify-content-center">
+                  <h5 className="modal-title fw-bold text-center">
+                    <i
+                      className="fa-solid fa-right-from-bracket me-2"
+                      style={{ color: "red" }}
+                    ></i>
+                    Confirm Logout
+                  </h5>
                 </div>
                 <div className="modal-body text-center">
-                  <p>Are you sure you want to logout?</p>
+                  <p className="fw-bold">Are you sure you want to logout?</p>
                 </div>
                 <div className="modal-footer justify-content-center">
                   <button
                     type="button"
-                    className="btn btn-secondary me-4"
+                    className="btn btn-secondary"
                     onClick={() => handleLogoutConfirm(false)}
                   >
-                    Cancel
+                    <i className="fa-solid fa-xmark me-1"></i> Cancel
                   </button>
                   <button
                     type="button"
                     className="btn btn-danger"
                     onClick={() => handleLogoutConfirm(true)}
                   >
-                    Exit Me
+                    <i className="fa-solid fa-check me-1"></i> Exit Me
                   </button>
                 </div>
               </div>
@@ -231,26 +272,6 @@ function Header({ outletName, filter, onFilterChange }) {
         </>
       )}
     </>
-  );
-}
-
-// Clock Component
-function Clock() {
-  const [time, setTime] = React.useState(new Date());
-
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="d-flex align-items-center">
-      <i className="bi bi-clock me-2"></i>
-      {time.toLocaleTimeString()}
-    </div>
   );
 }
 
