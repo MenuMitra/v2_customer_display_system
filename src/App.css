@@ -172,3 +172,9 @@ input[type="text"].text-center {
   background-color: #007bff !important;
   color: #fff !important;
 }
+
+
+        .btn-outline-primary:hover {
+          background-color: #dfdede !important;
+          color: #007bff !important;
+        }

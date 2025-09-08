@@ -23,8 +23,11 @@ function OrdersScreen() {
     (response) => response,
     (error) => {
       if (error.response?.status === 401) {
-        console.error("Unauthorized access - redirecting to login");
-        window.location.href = "/login";
+        console.warn("Unauthorized detected → logging out in 2s...");
+        setTimeout(() => {
+          localStorage.clear();
+          window.location.href = "/login";
+        }, 2000); // silent logout after 2 seconds
       }
       return Promise.reject(error);
     }
@@ -35,14 +38,7 @@ function OrdersScreen() {
     const outlet_id = authData?.outlet_id;
     const accessToken = authData?.access_token;
 
-    if (!outlet_id) {
-      setError("Outlet ID not found in localStorage. Please log in again.");
-      return;
-    }
-
-    if (!accessToken) {
-      console.error("No access token found");
-      window.location.href = "/login";
+    if (!outlet_id || !accessToken) {
       return;
     }
 
@@ -57,12 +53,10 @@ function OrdersScreen() {
         }
       );
 
-      // Validate API response structure
       if (!data || (!data.placed_orders && !data.cooking_orders && !data.paid_orders)) {
         throw new Error("Invalid response structure from server");
       }
 
-      // Extract outlet name from any order (preferably the first available)
       let outletNameResp = "";
       if (data.placed_orders?.length) {
         outletNameResp = data.placed_orders[0].outlet_name;
@@ -73,7 +67,6 @@ function OrdersScreen() {
       }
       setOutletName(outletNameResp);
 
-      // Map orders with their respective statuses
       const placedOrders = (data.placed_orders || []).map((order) => ({
         ...order,
         status: "placed",
@@ -90,64 +83,32 @@ function OrdersScreen() {
       setOrders([...placedOrders, ...ongoingOrders, ...completedOrders]);
       setError("");
     } catch (error) {
-      let errorMessage = "Failed to fetch orders. Please try again.";
-      if (error.response) {
-        errorMessage = `Server error (${error.response.status}): ${
-          error.response.data?.message || "Unable to fetch orders"
-        }`;
-      } else if (error.request) {
-        if (retryCount > 0) {
-          console.warn(`Retrying fetchOrders... (${retryCount} attempts left)`);
-          setTimeout(() => fetchOrders(retryCount - 1, delay * 2), delay);
-          return;
-        }
-        errorMessage = "Network error: Unable to reach the server. Please check your connection.";
-      } else {
-        errorMessage = error.message || "An unexpected error occurred.";
+      if (!error.response || error.response?.status !== 401) {
+        setError("Failed to fetch orders. Please try again.");
+        console.error("Order List View Error:", error);
       }
-      setError(errorMessage);
-      console.error("Order List View Error:", error);
     }
   };
 
   useEffect(() => {
-    fetchOrders(); // Initial fetch
-    const intervalId = setInterval(() => fetchOrders(), 60000); // Refresh every 1 minute
-
-    // Cleanup interval on component unmount
+    fetchOrders();
+    const intervalId = setInterval(() => fetchOrders(), 2000);
     return () => clearInterval(intervalId);
   }, [filter]);
 
-  // Handle screen resize
   useEffect(() => {
-    const handleResize = () => {
-      setScreenSize(window.innerWidth);
-    };
-
+    const handleResize = () => setScreenSize(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Get dynamic font sizes based on screen width
   const getFontSizes = () => {
     if (screenSize >= 2560) {
-      return {
-        header: "display-2",
-        orderNumber: "display-3",
-        itemCount: "display-4",
-      };
+      return { header: "display-2", orderNumber: "display-3", itemCount: "display-4" };
     } else if (screenSize >= 1920) {
-      return {
-        header: "display-3",
-        orderNumber: "display-4",
-        itemCount: "display-5",
-      };
+      return { header: "display-3", orderNumber: "display-4", itemCount: "display-5" };
     } else if (screenSize >= 1200) {
-      return {
-        header: "display-4",
-        orderNumber: "display-5",
-        itemCount: "display-6",
-      };
+      return { header: "display-4", orderNumber: "display-5", itemCount: "display-6" };
     } else if (screenSize >= 768) {
       return { header: "display-5", orderNumber: "display-6", itemCount: "h2" };
     } else {
@@ -157,21 +118,16 @@ function OrdersScreen() {
 
   const fontSizes = getFontSizes();
 
-  // Updated OrderCard component to show more details
   const OrderCard = ({ order }) => (
     <div className="bg-white rounded-3 mb-2 p-0.9 p-md-0.9 order-card">
       <div className="d-flex justify-content-between align-items-center mb-2 p-3">
-        <h2 className={`${fontSizes.orderNumber} fw-bold mb-0`}>
-          #{order.order_number}
-        </h2>
+        <h2 className={`${fontSizes.orderNumber} fw-bold mb-0`}>#{order.order_number}</h2>
         <div className="d-flex align-items-center">
           <span className={`${fontSizes.itemCount} me-3`}>
             <i className="bx bx-restaurant text-warning fs-1"></i>
           </span>
           <span className={`${fontSizes.itemCount} fs-1`}>
-            {Array.isArray(order.table_number)
-              ? order.table_number.join(", ")
-              : ""}
+            {Array.isArray(order.table_number) ? order.table_number.join(", ") : ""}
           </span>
         </div>
       </div>
@@ -180,95 +136,62 @@ function OrdersScreen() {
 
   return (
     <>
-      <Header outletName={outletName} filter={filter} onFilterChange={(newFilter) => {
-        setFilter(newFilter);
-        fetchOrders(); // Trigger fetch without loading for filter change
-      }} />
+      <Header
+        outletName={outletName}
+        filter={filter}
+        onFilterChange={(newFilter) => {
+          setFilter(newFilter);
+          fetchOrders();
+        }}
+      />
       <div className="container-fluid p-0">
         <div className="row g-0 min-vh-100">
+          
           {/* Left Side - Placed Orders */}
           <div className="col-12 col-md-4 bg-secondary">
             <div className="p-2 p-sm-3 p-md-4">
-              <h1
-                className={`${fontSizes.header} text-white text-center fw-bold mb-3 mb-md-4`}
-              >
+              <h1 className={`${fontSizes.header} text-white text-center fw-bold mb-3 mb-md-4`}>
                 PLACED
               </h1>
               {error ? (
                 <div className="alert alert-danger text-center" role="alert">
                   {error}
-                  <button
-                    className="btn btn-sm btn-primary ms-2"
-                    onClick={() => fetchOrders()}
-                  >
-                    Retry
-                  </button>
                 </div>
               ) : (
                 <div className="orders-container">
-                  {orders
-                    .filter((order) => order.status === "placed")
-                    .map((order) => (
-                      <OrderCard key={order.order_id} order={order} />
-                    ))}
+                  {orders.filter((order) => order.status === "placed").map((order) => (
+                    <OrderCard key={order.order_id} order={order} />
+                  ))}
                 </div>
               )}
             </div>
           </div>
 
           {/* Center - Ongoing Orders */}
-<div className="col-12 col-md-4 bg-warning cooking-section">
-  <div className="p-2 p-sm-2 p-md-2">
-    <h1 className={`${fontSizes.header} text-white text-center fw-bold mb-3 mb-md-1`}>
-      COOKING
-    </h1>
-    {error ? (
-      <div className="alert alert-danger text-center" role="alert">
-        {error}
-        <button className="btn btn-sm btn-primary ms-2" onClick={() => fetchOrders()}>
-          Retry
-        </button>
-      </div>
-    ) : (
-      <div className="orders-container">
-        {orders
-          .filter((order) => order.status === "ongoing")
-          .map((order) => (
-            <OrderCard key={order.order_id} order={order} />
-          ))}
-      </div>
-    )}
-  </div>
-</div>
-
+          <div className="col-12 col-md-4 bg-warning cooking-section">
+            <div className="p-2 p-sm-2 p-md-2">
+              <h1 className={`${fontSizes.header} text-white text-center fw-bold mb-3 mb-md-1`}>
+                COOKING
+              </h1>
+              <div className="orders-container">
+                {orders.filter((order) => order.status === "ongoing").map((order) => (
+                  <OrderCard key={order.order_id} order={order} />
+                ))}
+              </div>
+            </div>
+          </div>
 
           {/* Right - Completed Orders */}
           <div className="col-12 col-md-4 bg-success">
             <div className="p-2 p-sm-3 p-md-4">
-              <h1
-                className={`${fontSizes.header} text-white text-center fw-bold mb-3 mb-md-4`}
-              >
+              <h1 className={`${fontSizes.header} text-white text-center fw-bold mb-3 mb-md-4`}>
                 PAID
               </h1>
-              {error ? (
-                <div className="alert alert-danger text-center" role="alert">
-                  {error}
-                  <button
-                    className="btn btn-sm btn-primary ms-2"
-                    onClick={() => fetchOrders()}
-                  >
-                    Retry
-                  </button>
-                </div>
-              ) : (
-                <div className="orders-container">
-                  {orders
-                    .filter((order) => order.status === "completed")
-                    .map((order) => (
-                      <OrderCard key={order.order_id} order={order} />
-                    ))}
-                </div>
-              )}
+              <div className="orders-container">
+                {orders.filter((order) => order.status === "completed").map((order) => (
+                  <OrderCard key={order.order_id} order={order} />
+                ))}
+              </div>
             </div>
           </div>
         </div>
