@@ -114,6 +114,24 @@ function Header({ outletName, onRefresh }) {
     }, 10000);
     return () => clearInterval(interval);
   }, [selectedOutlet, dateRange]);
+  useEffect(() => {
+  // Reset scroll on load with a delay to override browser restoration
+  const timeoutId = setTimeout(() => {
+    window.scrollTo(0, 0);
+  }, 50);
+
+  // Reset scroll on page unload (for SPA navigation)
+  const handleBeforeUnload = () => {
+    window.scrollTo(0, 0);
+  };
+  window.addEventListener("beforeunload", handleBeforeUnload);
+
+  return () => {
+    clearTimeout(timeoutId);
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+  };
+}, []);
+
 
   const fontSizes =
     screenSize > 1200
@@ -504,11 +522,11 @@ function Header({ outletName, onRefresh }) {
           ></div>
         )}
 
-        {loading && selectedOutlet && (
+        {/* {loading && selectedOutlet && (
           <div className="text-center mt-3" style={{ fontWeight: "bold" }}>
             Loading orders...
           </div>
-        )}
+        )} */}
 
         {error && (
           <div
