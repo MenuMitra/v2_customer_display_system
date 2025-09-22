@@ -93,7 +93,7 @@
   font-size: 1rem;
   padding: 10px;
   width: 100%;
-  max-width: 300px; /* Control input width */
+   /* Control input width */
 }
 
 .btn-primary {
@@ -178,3 +178,6 @@ input[type="text"].text-center {
           background-color: #dfdede !important;
           color: #007bff !important;
         }
+
+
+

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { authService } from "../services/authService";
 import Footer from "../components/Footer";
@@ -16,18 +16,16 @@ function Login() {
   const handleSendOTP = async (e) => {
     e.preventDefault();
     setError("");
-    
     if (!mobileNumber || mobileNumber.length !== 10) {
       setError("Please enter a valid 10-digit mobile number");
       return;
     }
-
     try {
       setLoading(true);
       const response = await authService.sendOTP(mobileNumber);
-      
       if (response.success) {
         setShowOtpInput(true);
+        setOtpValues(["", "", "", ""]);
       } else {
         setError(response.error || "Failed to send OTP");
       }
@@ -41,11 +39,9 @@ function Login() {
   const handleOtpChange = (index, value) => {
     if (value.length > 1) value = value[0];
     if (!/^\d*$/.test(value)) return;
-
     const newOtpValues = [...otpValues];
     newOtpValues[index] = value;
     setOtpValues(newOtpValues);
-
     if (value !== "" && index < 3) {
       otpRefs[index + 1].current.focus();
     }
@@ -60,17 +56,14 @@ function Login() {
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setError("");
-    
     const otp = otpValues.join("");
     if (!otp || otp.length !== 4) {
       setError("Please enter a valid 4-digit OTP");
       return;
     }
-
     try {
       setLoading(true);
       const response = await authService.verifyOTP(mobileNumber, otp);
-      
       if (response.success) {
         navigate("/orders");
       } else {
@@ -84,105 +77,273 @@ function Login() {
   };
 
   return (
-    <>
-      <div className="container d-flex align-items-center justify-content-center min-vh-100">
-        <div className="card rounded-4 login-card shadow-sm" style={{ maxWidth: "600px", width: "100%" }}>
-          {/* Logo */}
-          <div className="app-brand justify-content-center mt-5">
-            <Link to="/" className="app-brand-link gap-2">
-              <span className="app-brand-logo demo">
-                <span className="text-primary">
-                  <img
-                    src={logo}
-                    alt="MenuMitra"
-                    style={{ width: "50px", height: "50px" }}
-                  />
-                </span>
-              </span>
-              <span className="app-brand-text demo text-heading fw-semibold">
-                MenuMitra
-              </span>
-            </Link>
+    <div
+      style={{
+        background: "#f9fafd",
+        minHeight: "100vh",
+        width: "100vw",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        className="login-card shadow-sm"
+        style={{
+          width: "100%",
+          border: "1.8px solid #d1d9e4ff",
+          borderRadius: "18px",
+          background: "#fff",
+          boxSizing: "border-box",
+          padding: "32px 32px 28px 32px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          margin: "10px 0 0 0",
+        }}
+      >
+        {/* Logo, Title, Subtitle Section */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
+          <img
+            src={logo}
+            alt="MenuMitra"
+            style={{ width: "55px", height: "55px", marginBottom: "10px" }}
+          />
+          <div
+            style={{
+              fontWeight: 600,
+              fontSize: "1.50rem",
+              textAlign: "center",
+              color: "#22242c",
+              marginBottom: "7px",
+            }}
+          >
+            MenuMitra
           </div>
-          <span className="app-brand-text demo text-heading fw-semibold text-center pt-3" style={{ fontSize: "2rem", fontWeight: "bold", color: "#1a1a1a" }}>
-            Customer Display System
-          </span>
-          {/* /Logo */}
-          <div className="card-body pt-5 pb-4">
-            <form
-              id="formAuthentication"
-              className="mb-3 fv-plugins-bootstrap5 fv-plugins-framework"
-              onSubmit={showOtpInput ? handleVerifyOTP : handleSendOTP}
-              noValidate="novalidate"
-            >
-              {error && (
-                <div className="alert alert-danger mb-3" role="alert" style={{ fontSize: "1rem" }}>
-                  {error}
-                </div>
-              )}
-              
-              {!showOtpInput ? (
-                <div className="form-floating form-floating-outline mb-4">
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="mobile"
-                    name="mobile"
-                    placeholder="Enter your mobile number"
-                    value={mobileNumber}
-                    onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    autoFocus
-                    style={{ fontSize: "1.2rem", padding: "15px" }}
-                  />
-                  <label htmlFor="mobile" style={{ fontSize: "1.1rem" }}>Mobile Number</label>
-                </div>
-              ) : (
-                <>
-                  <div className="text-center mb-4" style={{ fontSize: "1.1rem" }}>
-                    Enter the 4-digit code sent to {mobileNumber}
-                  </div>
-                  <div className="d-flex justify-content-center gap-3 mb-4">
-                    {otpValues.map((value, index) => (
-                      <input
-                        key={index}
-                        ref={otpRefs[index]}
-                        type="text"
-                        className="form-control text-center"
-                        style={{ width: "60px", height: "60px", fontSize: "1.5rem", padding: "10px" }}
-                        value={value}
-                        onChange={(e) => handleOtpChange(index, e.target.value)}
-                        onKeyDown={(e) => handleKeyDown(index, e)}
-                        maxLength={1}
-                        autoFocus={index === 0}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-              
-              <div className="mb-4">
-                <button
-                  className="btn btn-primary d-grid w-100"
-                  type="submit"
-                  disabled={loading}
-                  style={{ padding: "15px", fontSize: "1.2rem" }}
-                >
-                  {loading ? (
-                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  ) : showOtpInput ? (
-                    "Verify OTP"
-                  ) : (
-                    "Send OTP"
-                  )}
-                </button>
-              </div>
-            </form>
-            {/* Footer */}
-            <Footer />
+          <div
+            style={{
+              color: "#666b7c",
+              fontSize: "1rem",
+              textAlign: "center",
+              fontWeight: 400,
+              marginBottom: "22px",
+            }}
+          >
+            Sign in to continue to your account
           </div>
         </div>
+        <form
+          id="formAuthentication"
+          onSubmit={showOtpInput ? handleVerifyOTP : handleSendOTP}
+          noValidate="novalidate"
+          style={{ width: "100%" }}
+        >
+          {error && (
+            <div
+              className="alert alert-danger mb-3"
+              role="alert"
+              style={{ fontSize: "1rem" }}
+            >
+              {error}
+            </div>
+          )}
+          {/* Hide mobile input field from view when OTP input should show */}
+          {!showOtpInput && (
+            <div style={{ marginBottom: "17px" }}>
+              <label
+                htmlFor="mobile"
+                style={{
+                  fontSize: "1.07rem",
+                  fontWeight: 400,
+                  marginBottom: 6,
+                  display: "block",
+                  color: "#22242c",
+                }}
+              >
+                Mobile Number <span style={{ color: "#cb1227" }}>*</span>
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="mobile"
+                name="mobile"
+                placeholder="Enter your mobile number"
+                value={mobileNumber}
+                onChange={(e) =>
+                  setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
+                }
+                autoFocus={!showOtpInput}
+                disabled={showOtpInput}
+                style={{
+                  fontSize: "1.08rem",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "1.1px solid #ddd",
+                  height: "48px",
+                  marginBottom: "12px",
+                  background: showOtpInput ? "#f3f4f7" : "#fff",
+                  color: showOtpInput ? "#a0a4b0" : "#22242c",
+                  transition: "background 0.2s",
+                }}
+              />
+              <button
+                className="btn btn-primary w-100"
+                type="submit"
+                disabled={loading}
+                style={{
+                  padding: "15px 0",
+                  fontSize: "1.11rem",
+                  borderRadius: "10px",
+                  background: "#178be2",
+                  color: "#fff",
+                  border: "none",
+                  marginTop: "2px",
+                  fontWeight: 600,
+                  boxShadow: "0 1px 4px rgba(44,51,73,0.07)",
+                }}
+              >
+                {loading ? (
+                  <span
+                    className="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  "Send OTP"
+                )}
+              </button>
+            </div>
+          )}
+          {showOtpInput && (
+            <div style={{ marginBottom: "21px" }}>
+              <div
+                className="text-center mb-3"
+                style={{ fontSize: "1rem", fontWeight: 500, color: "#22242c" }}
+              >
+                Enter the 4-digit code
+              </div>
+              <div className="d-flex justify-content-center mb-4">
+                {otpValues.map((value, index) => (
+                  <input
+                    key={index}
+                    ref={otpRefs[index]}
+                    type="text"
+                    className="input_tags_login form-control text-center full-width-important"
+                    style={{
+                      height: "44px",
+                      width: "44px",
+                      fontSize: "1.15rem",
+                      margin: "0 8px",
+                      borderRadius: "8px",
+                      border: "1px solid #cbcfd5",
+                      background: "#fff",
+                    }}
+                    value={value}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    maxLength={1}
+                    autoFocus={index === 0}
+                  />
+                ))}
+              </div>
+              <button
+                className="btn btn-primary w-100"
+                type="submit"
+                disabled={loading}
+                style={{
+                  padding: "14px 0",
+                  fontSize: "1.10rem",
+                  borderRadius: "10px",
+                  background: "#178be2",
+                  color: "#fff",
+                  border: "none",
+                  fontWeight: 600,
+                  boxShadow: "0 1px 4px rgba(44,51,73,0.07)",
+                }}
+              >
+                {loading ? (
+                  <span
+                    className="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  "Verify OTP"
+                )}
+              </button>
+            </div>
+          )}
+        </form>
       </div>
-    </>
+
+      <nav
+        style={{
+          display: "flex",
+          gap: "34px",
+          marginTop: "0px",
+          marginBottom: "10px",
+          maxWidth: "440px",
+          width: "100%",
+          justifyContent: "center",
+        }}
+      >
+        <a
+          href="#"
+          style={{
+            color: "#757c8a",
+            fontWeight: 450,
+            fontSize: "1rem",
+            textDecoration: "none",
+          }}
+        >
+          Home
+        </a>
+        <a
+          href="#"
+          style={{
+            color: "#757c8a",
+            fontWeight: 450,
+            fontSize: "1rem",
+            textDecoration: "none",
+          }}
+        >
+          Book a demo
+        </a>
+        <a
+          href="#"
+          style={{
+            color: "#757c8a",
+            fontWeight: 450,
+            fontSize: "1rem",
+            textDecoration: "none",
+          }}
+        >
+          Contact
+        </a>
+        <a
+          href="#"
+          style={{
+            color: "#757c8a",
+            fontWeight: 450,
+            fontSize: "1rem",
+            textDecoration: "none",
+          }}
+        >
+          Support
+        </a>
+      </nav>
+
+      <Footer />
+    </div>
   );
 }
 

@@ -1,11 +1,183 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 import logo from "../assets/logo.png";
+import OutletDropdown from "./OutletDropdown";
+import foodIcon from "../assets/food_icon.jpg";
 
-function Header({ outletName, filter, onFilterChange }) {
+function Header({ outletName, onRefresh }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [selectedOutlet, setSelectedOutlet] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [screenSize, setScreenSize] = useState(window.innerWidth);
+
+  const [dateRange, setDateRange] = useState(() => {
+    const persisted = localStorage.getItem("statistics_date_range");
+    if (persisted) {
+      try {
+        const parsed = JSON.parse(persisted);
+        return parsed.type || "today";
+      } catch {
+        // Ignore JSON errors
+      }
+    }
+    return "today";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("statistics_date_range", JSON.stringify({ type: dateRange }));
+  }, [dateRange]);
+
+  const authData = localStorage.getItem("authData");
+  let token = null;
+  if (authData) {
+    try {
+      token = JSON.parse(authData).access_token;
+    } catch (err) {
+      console.error("Failed to parse authData", err);
+    }
+  }
+
+  const fetchOrders = async (outletId) => {
+    if (!outletId) return;
+    setLoading(true);
+    setError("");
+    try {
+      const requestPayload = {
+        outlet_id: outletId,
+        date_filter: dateRange,
+        owner_id: 1,
+        app_source: "admin",
+      };
+      const response = await axios.post(
+        "https://men4u.xyz/v2/common/cds_kds_order_listview",
+        requestPayload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = response.data;
+      if (!data) {
+        setOrders([]);
+        setError("No data received");
+      } else {
+        const placedOrders =
+          (data.placed_orders || []).map((order) => ({ ...order, status: "placed" })) || [];
+        const ongoingOrders =
+          (data.cooking_orders || []).map((order) => ({ ...order, status: "ongoing" })) || [];
+        const completedOrders =
+          (data.paid_orders || []).map((order) => ({ ...order, status: "completed" })) || [];
+        const allOrders = [...placedOrders, ...ongoingOrders, ...completedOrders];
+        setOrders(allOrders);
+      }
+    } catch (err) {
+      setError("Failed to fetch orders. Please try again.");
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOutletSelect = (outlet) => {
+    setSelectedOutlet(outlet);
+    fetchOrders(outlet.outlet_id);
+  };
+
+  useEffect(() => {
+    if (selectedOutlet) {
+      fetchOrders(selectedOutlet.outlet_id);
+    }
+  }, [dateRange, selectedOutlet]);
+
+  useEffect(() => {
+    const handleResize = () => setScreenSize(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedOutlet) return;
+    const interval = setInterval(() => {
+      fetchOrders(selectedOutlet.outlet_id);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [selectedOutlet, dateRange]);
+
+  const fontSizes =
+    screenSize > 1200
+      ? { header: "display-4", orderNumber: "display-5", itemCount: "display-6" }
+      : { header: "h4", orderNumber: "h5", itemCount: "h6" };
+
+  // Only this part changed to add table icon after table number
+  // Inside Header function, replace OrderCard component with this updated version:
+const OrderCard = ({ order, showIcon }) => {
+  // Calculate total menu count for this order across all menu items
+  const menuCount = order.menu_details
+    ? order.menu_details.reduce((total, menu) => total + (menu.quantity || 0), 0)
+    : 0;
+
+  return (
+    <div className="bg-white rounded-3 mb-2 p-2">
+      <div className="d-flex justify-content-between align-items-center">
+        <h2
+          className={fontSizes.orderNumber}
+          style={{
+            fontSize: '1.5rem', // Reduced font size for order number
+            fontWeight: 'bold',
+            marginBottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          {menuCount} {/* Show menu count instead of order number */}
+          {showIcon && (
+            <img
+              src={foodIcon}
+              alt="Food Icon"
+              style={{
+                height: '1.9rem',  // Reduced height for the icon
+                width: '1.9rem',   // Reduced width for the icon
+                verticalAlign: 'middle',
+                marginBottom: 0,
+              }}
+            />
+          )}
+        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '1.5rem' }}>
+          {Array.isArray(order.table_number) ? order.table_number.join(', ') : ''}
+          <i className="fa-solid fa-table" style={{ fontSize: '1.5rem', color: '#FDB813' }}></i>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+  
+
+  const renderOrdersInSection = (orders, title, bgColorClass, showIcon = false) => (
+    <div className={`col-12 col-md-4 ${bgColorClass}`}>
+      <div className="p-3">
+        <h1 className={`${fontSizes.header} text-white text-center fw-bold mb-3`}>{title}</h1>
+        {error ? (
+          <div className="alert alert-danger text-center" role="alert">
+            {error}
+          </div>
+        ) : orders.length === 0 ? (
+          <p className="text-white text-center">No {title.toLowerCase()}.</p>
+        ) : (
+          orders.map((order) => <OrderCard key={order.order_id} order={order} showIcon={showIcon} />)
+        )}
+      </div>
+    </div>
+  );
 
   const handleLogout = async () => {
     try {
@@ -16,7 +188,6 @@ function Header({ outletName, filter, onFilterChange }) {
         device_token:
           "Entjx4wL350fdkAPvRs2YHKeBgImyElMnk5USx1QYz5UbWGooIt16BLTqGMsCdfzQPn9SKg3YtkQ94KHHqk.cYjkEmN.8nvp-Qyr",
       };
-
       const response = await fetch("https://men4u.xyz/common_api/logout", {
         method: "POST",
         headers: {
@@ -24,13 +195,10 @@ function Header({ outletName, filter, onFilterChange }) {
         },
         body: JSON.stringify(logoutData),
       });
-
       const data = await response.json();
-
       if (data.st === 1) {
         localStorage.clear();
       }
-
       navigate("/login");
     } catch (error) {
       console.error("Error logging out:", error);
@@ -45,7 +213,7 @@ function Header({ outletName, filter, onFilterChange }) {
 
   return (
     <>
-      {/* Testing Environment Banner */}
+      {/* Testing Banner */}
       <div
         style={{
           width: "100%",
@@ -67,7 +235,7 @@ function Header({ outletName, filter, onFilterChange }) {
       <header className="bg-white shadow-sm" style={{ marginTop: "25px" }}>
         <nav className="navbar navbar-expand-lg navbar-dark py-2">
           <div className="container-fluid px-5">
-            {/* Brand/Logo */}
+            {/* Brand/Logo with Outlet Dropdown */}
             <div className="navbar-brand d-flex align-items-center gap-2">
               <img
                 src={logo}
@@ -75,13 +243,10 @@ function Header({ outletName, filter, onFilterChange }) {
                 style={{ height: "35px", width: "35px", objectFit: "contain" }}
               />
               <span className="fs-4 fw-bold text-dark">Menumitra</span>
-              {outletName && (
-                <span className="fs-6 fw-semibold ms-2 text-muted">
-                  {outletName.toUpperCase()}
-                </span>
-              )}
+              <div>
+                <OutletDropdown onSelect={handleOutletSelect} />
+              </div>
             </div>
-
             {/* Center Title */}
             <div
               style={{
@@ -96,148 +261,144 @@ function Header({ outletName, filter, onFilterChange }) {
               }}
             >
               C D S
+              <div style={{ fontSize: "12px", fontWeight: "normal", color: "#666", marginTop: "2px" }}>
+                Showing: {dateRange === "today" ? "Today's Orders" : "All Orders"}
+              </div>
             </div>
 
             {/* Navigation Links */}
-            <ul
-              className="navbar-nav ms-auto align-items-center"
-              style={{ gap: "8px" }}
-            >
-              <li className="nav-item">
-                <div className="btn-group" role="group">
+            <ul className="navbar-nav ms-auto align-items-center" style={{ gap: "8px" }}>
+              <li className="nav-item d-flex align-items-center flex-row">
+                {/* Toggle for Today/All */}
+                <div
+                  className="btn-group"
+                  role="group"
+                  style={{
+                    border: "1.2px solid #2376dcff",
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    height: "40px",
+                    width: "112px",
+                    background: "#fff",
+                  }}
+                >
                   <button
                     type="button"
-                    className={`btn ${
-                      filter === "today" ? "btn-primary" : "btn-outline-primary"
-                    }`}
-                    onClick={() => onFilterChange("today")}
+                    className="btn"
                     style={{
-                      backgroundColor:
-                        filter === "today" ? "#007bff" : "transparent",
-                      color: filter === "today" ? "#fff" : "#007bff",
-                      borderColor: "#007bff",
-                      transition: "background-color 0.2s, color 0.2s",
+                      backgroundColor: dateRange === "today" ? "#0081ff" : "#ffffffff",
+                      color: dateRange === "today" ? "#fff" : "#0081ff",
+                      border: "none",
+                      borderRadius: "8px 0 0 8px",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      minWidth: "56px",
+                      height: "40px",
+                      boxShadow: "none",
+                      transition: "background-color 0.15s, color 0.15s",
+                      padding: "0",
+                      lineHeight: "40px",
+                      textAlign: "center",
                     }}
-                    onMouseOver={(e) =>
-                      filter !== "today" &&
-                      (e.currentTarget.style.backgroundColor = "#f5f5f5")
-                    }
-                    onMouseOut={(e) =>
-                      filter !== "today" &&
-                      (e.currentTarget.style.backgroundColor = "transparent")
-                    }
-                    title="Today"
+                    onClick={() => setDateRange("today")}
                   >
                     Today
                   </button>
                   <button
                     type="button"
-                    className={`btn ${
-                      filter === "all" ? "btn-primary" : "btn-outline-primary"
-                    }`}
-                    onClick={() => onFilterChange("all")}
+                    className="btn"
                     style={{
-                      backgroundColor:
-                        filter === "all" ? "#007bff" : "transparent",
-                      color: filter === "all" ? "#fff" : "#007bff",
-                      borderColor: "#007bff",
-                      transition: "background-color 0.2s, color 0.2s",
+                      backgroundColor: dateRange === "all" ? "#0081ff" : "#fff",
+                      color: dateRange === "all" ? "#fff" : "#0081ff",
+                      border: "none",
+                      borderRadius: "0 8px 8px 0",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      minWidth: "56px",
+                      height: "40px",
+                      boxShadow: "none",
+                      transition: "background-color 0.15s, color 0.15s",
+                      padding: "0",
+                      lineHeight: "40px",
+                      textAlign: "center",
+                      borderLeft: "1px solid #babfc5",
                     }}
-                    onMouseOver={(e) =>
-                      filter !== "all" &&
-                      (e.currentTarget.style.backgroundColor = "#f5f5f5")
-                    }
-                    onMouseOut={(e) =>
-                      filter !== "all" &&
-                      (e.currentTarget.style.backgroundColor = "transparent")
-                    }
-                    title="All"
+                    onClick={() => setDateRange("all")}
                   >
                     All
                   </button>
                 </div>
-              </li>
-
-              {/* Fullscreen Icon */}
-              <li className="nav-item">
-                <div
-                  className="nav-link d-flex align-items-center justify-content-center"
+                {/* Refresh Icon */}
+                <button
+                  className="btn btn-outline-secondary d-flex align-items-center justify-content-center"
+                  title="Refresh"
+                  onClick={() => {
+                    if (selectedOutlet) {
+                      fetchOrders(selectedOutlet.outlet_id);
+                    }
+                  }}
+                  disabled={loading}
                   style={{
-                    cursor: "pointer",
-                    color: "grey",
-                    border: "2px solid grey",
+                    border: "2px solid #babfc5",
                     borderRadius: "8px",
                     width: "40px",
                     height: "40px",
-                    fontSize: "20px",
-                    backgroundColor: "transparent",
-                    transition: "background-color 0.2s",
+                    marginLeft: "8px",
+                    background: "#fff",
                   }}
+                >
+                  <i className="fa-solid fa-rotate" />
+                </button>
+
+                {/* Fullscreen Icon */}
+                <button
+                  className="btn d-flex align-items-center justify-content-center"
                   title="Fullscreen"
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#f5f5f5")
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
-                  }
                   onClick={() => {
                     if (location.pathname === "/orders") {
-                      const container = document.querySelector(
-                        ".container-fluid.p-0"
-                      );
+                      const container = document.querySelector(".container-fluid.p-0");
                       if (container && container.requestFullscreen) {
                         container.requestFullscreen();
-                      } else if (
-                        container &&
-                        container.webkitRequestFullscreen
-                      ) {
+                      } else if (container && container.webkitRequestFullscreen) {
                         container.webkitRequestFullscreen();
-                      } else if (
-                        container &&
-                        container.mozRequestFullScreen
-                      ) {
+                      } else if (container && container.mozRequestFullScreen) {
                         container.mozRequestFullScreen();
-                      } else if (
-                        container &&
-                        container.msRequestFullscreen
-                      ) {
+                      } else if (container && container.msRequestFullscreen) {
                         container.msRequestFullscreen();
                       }
                     } else {
                       navigate("/orders");
                     }
                   }}
+                  style={{
+                    border: "2px solid #babfc5",
+                    borderRadius: "8px",
+                    width: "40px",
+                    height: "40px",
+                    marginLeft: "8px",
+                    background: "#fff",
+                    color: "grey",
+                  }}
                 >
                   <i className="bx bx-fullscreen"></i>
-                </div>
-              </li>
-
-              {/* Logout Icon */}
-              <li className="nav-item">
-                <div
-                  className="nav-link d-flex align-items-center justify-content-center"
+                </button>
+                {/* Logout Icon */}
+                <button
+                  className="btn d-flex align-items-center justify-content-center"
+                  title="Logout"
+                  onClick={() => setShowLogoutConfirm(true)}
                   style={{
-                    cursor: "pointer",
-                    color: "red",
                     border: "2px solid red",
                     borderRadius: "8px",
                     width: "40px",
                     height: "40px",
-                    fontSize: "20px",
-                    backgroundColor: "transparent",
-                    transition: "background-color 0.2s",
+                    marginLeft: "8px",
+                    background: "#fff",
+                    color: "red",
                   }}
-                  title="Logout"
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#f5f5f5")
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
-                  }
-                  onClick={() => setShowLogoutConfirm(true)}
                 >
                   <i className="fa-solid fa-right-from-bracket"></i>
-                </div>
+                </button>
               </li>
             </ul>
           </div>
@@ -282,7 +443,6 @@ function Header({ outletName, filter, onFilterChange }) {
                   boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
                 }}
               >
-                {/* Centered Header with Red Icon */}
                 <div className="modal-header d-flex justify-content-center">
                   <h5 className="modal-title fw-bold text-center">
                     <i
@@ -316,6 +476,87 @@ function Header({ outletName, filter, onFilterChange }) {
           </div>
         </>
       )}
+
+      {/* Orders Display Sections */}
+      <div className="container-fluid p-0">
+        {!selectedOutlet && (
+          <div
+            style={{
+              fontWeight: "bold",
+              textAlign: "center",
+              marginTop: "1rem",
+              color: "#000",
+            }}
+          ></div>
+        )}
+
+        {loading && selectedOutlet && (
+          <div className="text-center mt-3" style={{ fontWeight: "bold" }}>
+            Loading orders...
+          </div>
+        )}
+
+        {error && (
+          <div
+            className="alert alert-danger text-center mt-3"
+            role="alert"
+            style={{ fontWeight: "bold" }}
+          >
+            {error}
+          </div>
+        )}
+
+        {selectedOutlet && !loading && !error && orders.length === 0 && (
+          <div className="text-center mt-3" style={{ fontWeight: "bold" }}>
+            No orders found for selected outlet.
+          </div>
+        )}
+
+        <div className="row g-0 min-vh-100" style={{ height: "90vh" }}>
+          {/* PLACED */}
+          <div className="col-12 col-md-4 bg-secondary p-4" style={{ minHeight: "90vh" }}>
+            <h3
+              className="text-white text-center fw-bold mb-4"
+              style={{ fontSize: "2.6rem", letterSpacing: "2px" }}
+            >
+              PLACED
+            </h3>
+            {orders
+              .filter((order) => order.status === "placed")
+              .map((order) => (
+                <OrderCard key={order.order_id} order={order} showIcon={true} />
+              ))}
+          </div>
+          {/* COOKING */}
+          <div className="col-12 col-md-4 bg-warning p-4" style={{ minHeight: "90vh" }}>
+            <h3
+              className="text-white text-center fw-bold mb-4"
+              style={{ fontSize: "2.6rem", letterSpacing: "2px" }}
+            >
+              COOKING
+            </h3>
+            {orders
+              .filter((order) => order.status === "ongoing")
+              .map((order) => (
+                <OrderCard key={order.order_id} order={order} showIcon={true} />
+              ))}
+          </div>
+          {/* PICKUP */}
+          <div className="col-12 col-md-4 bg-success p-4" style={{ minHeight: "90vh" }}>
+            <h3
+              className="text-white text-center fw-bold mb-4"
+              style={{ fontSize: "2.6rem", letterSpacing: "2px" }}
+            >
+              PICKUP
+            </h3>
+            {orders
+              .filter((order) => order.status === "completed")
+              .map((order) => (
+                <OrderCard key={order.order_id} order={order} showIcon={true} />
+              ))}
+          </div>
+        </div>
+      </div>
     </>
   );
 }
