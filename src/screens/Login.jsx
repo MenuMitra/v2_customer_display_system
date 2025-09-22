@@ -76,6 +76,12 @@ function Login() {
     }
   };
 
+  // New function to go back to mobile input
+  const handleBackToLogin = () => {
+    setShowOtpInput(false);
+    setError("");
+  };
+
   return (
     <div
       style={{
@@ -101,7 +107,7 @@ function Login() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          margin: "10px 0 0 0",
+          margin: "11px 0 6px 0",
         }}
       >
         {/* Logo, Title, Subtitle Section */}
@@ -151,12 +157,17 @@ function Login() {
             <div
               className="alert alert-danger mb-3"
               role="alert"
-              style={{ fontSize: "1rem" }}
+              style={{
+                fontSize: "1rem",
+                marginBottom: "10px",
+                textAlign: "center",
+                marginLeft: "60px",
+                marginRight: "10px",
+              }}
             >
               {error}
             </div>
           )}
-          {/* Hide mobile input field from view when OTP input should show */}
           {!showOtpInput && (
             <div style={{ marginBottom: "17px" }}>
               <label
@@ -239,13 +250,15 @@ function Login() {
                     type="text"
                     className="input_tags_login form-control text-center full-width-important"
                     style={{
-                      height: "44px",
-                      width: "44px",
+                      minHeight: "50px",
+                      maxWidth: "70px",
                       fontSize: "1.15rem",
-                      margin: "0 8px",
+                      margin: "15px",
                       borderRadius: "8px",
                       border: "1px solid #cbcfd5",
+                      boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                       background: "#fff",
+                      transition: "box-shadow 0.3s ease",
                     }}
                     value={value}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
@@ -280,11 +293,27 @@ function Login() {
                   "Verify OTP"
                 )}
               </button>
+              {/* Back to login */}
+              <div
+                onClick={handleBackToLogin}
+                style={{
+                  marginTop: "12px",
+                  fontSize: "1rem",
+                  color: "#178be2",
+                  fontWeight: 600,
+                  textAlign: "center",
+                  cursor: "pointer",
+                  userSelect: "none",
+                }}
+              >
+                Back to login
+              </div>
             </div>
           )}
         </form>
       </div>
 
+      {/* Navigation Links with correct hrefs */}
       <nav
         style={{
           display: "flex",
@@ -297,44 +326,44 @@ function Login() {
         }}
       >
         <a
-          href="#"
+          href="https://menumitra.com/"
           style={{
             color: "#757c8a",
             fontWeight: 450,
-            fontSize: "1rem",
+            fontSize: "0.9rem",
             textDecoration: "none",
           }}
         >
           Home
         </a>
         <a
-          href="#"
+          href="https://menumitra.com/book_demo"
           style={{
             color: "#757c8a",
             fontWeight: 450,
-            fontSize: "1rem",
+            fontSize: "0.9rem",
             textDecoration: "none",
           }}
         >
           Book a demo
         </a>
         <a
-          href="#"
+          href="https://menumitra.com/about_us"
           style={{
             color: "#757c8a",
             fontWeight: 450,
-            fontSize: "1rem",
+            fontSize: "0.9rem",
             textDecoration: "none",
           }}
         >
           Contact
         </a>
         <a
-          href="#"
+          href="https://menumitra.com/support"
           style={{
             color: "#757c8a",
             fontWeight: 450,
-            fontSize: "1rem",
+            fontSize: "0.9rem",
             textDecoration: "none",
           }}
         >

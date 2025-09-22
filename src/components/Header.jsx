@@ -27,6 +27,11 @@ function Header({ outletName, onRefresh }) {
     }
     return "today";
   });
+  useEffect(() => {
+    // Clear persisted date range on every refresh so default is always today
+    localStorage.removeItem("statistics_date_range");
+    setDateRange("today");
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("statistics_date_range", JSON.stringify({ type: dateRange }));
@@ -115,23 +120,22 @@ function Header({ outletName, onRefresh }) {
     return () => clearInterval(interval);
   }, [selectedOutlet, dateRange]);
   useEffect(() => {
-  // Reset scroll on load with a delay to override browser restoration
-  const timeoutId = setTimeout(() => {
-    window.scrollTo(0, 0);
-  }, 50);
+    // Reset scroll on load with a delay to override browser restoration
+    const timeoutId = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 50);
 
-  // Reset scroll on page unload (for SPA navigation)
-  const handleBeforeUnload = () => {
-    window.scrollTo(0, 0);
-  };
-  window.addEventListener("beforeunload", handleBeforeUnload);
+    // Reset scroll on page unload (for SPA navigation)
+    const handleBeforeUnload = () => {
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
-  return () => {
-    clearTimeout(timeoutId);
-    window.removeEventListener("beforeunload", handleBeforeUnload);
-  };
-}, []);
-
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   const fontSizes =
     screenSize > 1200
@@ -202,13 +206,9 @@ function Header({ outletName, onRefresh }) {
         </div>
       ) : (
         <>
-          {orders.filter((order) => order.status === statusFilter).length === 0 ? (
-            <p className="text-white text-center">No {title.toLowerCase()}.</p>
-          ) : (
-            orders
-              .filter((order) => order.status === statusFilter)
-              .map((order) => <OrderCard key={order.order_id} order={order} showIcon={true} />)
-          )}
+          {orders
+            .filter((order) => order.status === statusFilter)
+            .map((order) => <OrderCard key={order.order_id} order={order} showIcon={true} />)}
         </>
       )}
     </div>
@@ -369,7 +369,6 @@ function Header({ outletName, onRefresh }) {
                       fetchOrders(selectedOutlet.outlet_id);
                     }
                   }}
-                  disabled={loading}
                   style={{
                     border: "2px solid #babfc5",
                     borderRadius: "8px",
@@ -377,6 +376,8 @@ function Header({ outletName, onRefresh }) {
                     height: "40px",
                     marginLeft: "8px",
                     background: "#fff",
+                    color: "#000",
+                    transition: "none",
                   }}
                 >
                   <i className="fa-solid fa-rotate" />
@@ -470,27 +471,33 @@ function Header({ outletName, onRefresh }) {
               <div
                 className="modal-content"
                 style={{
-                  border: "2px solid #dc3545",
+                  border: "1px solid #dc3545",
                   borderRadius: "8px",
                   boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
                 }}
               >
-                <div className="modal-header d-flex justify-content-center">
-                  <h5 className="modal-title fw-bold text-center">
+                <div
+                  className="modal-header d-flex justify-content-center align-items-center"
+                  style={{ borderBottom: "1px solid #dee2e6" }}
+                >
+                  <h5 className="modal-title fw-bold text-center m-0">
                     <i
                       className="fa-solid fa-right-from-bracket me-2"
-                      style={{ color: "red" }}
+                      style={{ color: "red", paddingBottom: "10px" }}
                     ></i>
                     Confirm Logout
                   </h5>
                 </div>
-                <div className="modal-body text-center">
-                  <p className="fw-bold">Are you sure you want to logout?</p>
+                <div className="modal-body d-flex justify-content-center align-items-center text-center">
+                  <p className="fw-bold m-0">Are you sure you want to logout?</p>
                 </div>
-                <div className="modal-footer justify-content-between">
+                <div
+                  className="modal-footer d-flex justify-content-center"
+                  style={{ borderTop: "1px solid #dee2e6", paddingTop: "15px", paddingBottom: "15px" }}
+                >
                   <button
                     type="button"
-                    className="btn btn-secondary"
+                    className="btn btn-secondary me-2 "
                     onClick={() => handleLogoutConfirm(false)}
                   >
                     <i className="fa-solid fa-xmark me-1"></i> Cancel
@@ -521,12 +528,6 @@ function Header({ outletName, onRefresh }) {
             }}
           ></div>
         )}
-
-        {/* {loading && selectedOutlet && (
-          <div className="text-center mt-3" style={{ fontWeight: "bold" }}>
-            Loading orders...
-          </div>
-        )} */}
 
         {error && (
           <div

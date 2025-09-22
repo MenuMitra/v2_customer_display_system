@@ -103,12 +103,12 @@ const Footer = () => {
           marginTop: "1px",
           marginBottom: "8px",
           color: "#757c8a",
-          fontSize: "0.9rem",
+          fontSize: "0.8rem",
         }}
       >
         <span className="cds-version">Version 2.0</span>
         <span style={{ margin: "0 3px" }}>|</span>
-        <span className="cds-release-date">13 Aug 2025</span>
+        <span className="cds-release-date">23 Sep 2025</span>
       </div>
     </div>
   );
