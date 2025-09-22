@@ -32,6 +32,11 @@ function Header({ outletName, onRefresh }) {
     localStorage.setItem("statistics_date_range", JSON.stringify({ type: dateRange }));
   }, [dateRange]);
 
+  // Fix page scroll on refresh - scroll to top
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, []);
+
   const authData = localStorage.getItem("authData");
   let token = null;
   if (authData) {
@@ -115,67 +120,79 @@ function Header({ outletName, onRefresh }) {
       ? { header: "display-4", orderNumber: "display-5", itemCount: "display-6" }
       : { header: "h4", orderNumber: "h5", itemCount: "h6" };
 
-  // Only this part changed to add table icon after table number
-  // Inside Header function, replace OrderCard component with this updated version:
-const OrderCard = ({ order, showIcon }) => {
-  // Calculate total menu count for this order across all menu items
-  const menuCount = order.menu_details
-    ? order.menu_details.reduce((total, menu) => total + (menu.quantity || 0), 0)
-    : 0;
-
-  return (
-    <div className="bg-white rounded-3 mb-2 p-2">
-      <div className="d-flex justify-content-between align-items-center">
-        <h2
-          className={fontSizes.orderNumber}
-          style={{
-            fontSize: '1.5rem', // Reduced font size for order number
-            fontWeight: 'bold',
-            marginBottom: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
-          {menuCount} {/* Show menu count instead of order number */}
-          {showIcon && (
-            <img
-              src={foodIcon}
-              alt="Food Icon"
-              style={{
-                height: '1.9rem',  // Reduced height for the icon
-                width: '1.9rem',   // Reduced width for the icon
-                verticalAlign: 'middle',
-                marginBottom: 0,
-              }}
-            />
-          )}
-        </h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '1.5rem' }}>
-          {Array.isArray(order.table_number) ? order.table_number.join(', ') : ''}
-          <i className="fa-solid fa-table" style={{ fontSize: '1.5rem', color: '#FDB813' }}></i>
+  const OrderCard = ({ order, showIcon }) => {
+    const menuCount = order.menu_details
+      ? order.menu_details.reduce((total, menu) => total + menu.quantity, 0)
+      : 0;
+    return (
+      <div
+        className="bg-white rounded-3 mb-2 p-3"
+        style={{
+          margin: "12px",
+          fontSize: "1.8rem",
+        }}
+      >
+        <div className="d-flex justify-content-between align-items-center">
+          <h2
+            style={{
+              fontSize: "1.8rem",
+              fontWeight: "bold",
+              marginBottom: 0,
+              display: "inline",
+            }}
+          >
+            #{order.order_number}
+          </h2>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "1.8rem",
+            }}
+          >
+            <span>{menuCount}</span>
+            {showIcon && (
+              <img
+                src={foodIcon}
+                alt="Food Icon"
+                style={{
+                  height: "2.2rem",
+                  width: "2.2rem",
+                  verticalAlign: "middle",
+                  marginBottom: 0,
+                }}
+              />
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
-  
-
-  const renderOrdersInSection = (orders, title, bgColorClass, showIcon = false) => (
-    <div className={`col-12 col-md-4 ${bgColorClass}`}>
-      <div className="p-3">
-        <h1 className={`${fontSizes.header} text-white text-center fw-bold mb-3`}>{title}</h1>
-        {error ? (
-          <div className="alert alert-danger text-center" role="alert">
-            {error}
-          </div>
-        ) : orders.length === 0 ? (
-          <p className="text-white text-center">No {title.toLowerCase()}.</p>
-        ) : (
-          orders.map((order) => <OrderCard key={order.order_id} order={order} showIcon={showIcon} />)
-        )}
-      </div>
+  const renderOrdersInSection = (statusFilter, title, bgColorClass) => (
+    <div className={`col-12 col-md-4 ${bgColorClass}`} style={{ minHeight: "90vh" }}>
+      <h3
+        className="text-white text-center fw-bold mb-4"
+        style={{ fontSize: "2.6rem", letterSpacing: "2px" }}
+      >
+        {title}
+      </h3>
+      {error ? (
+        <div className="alert alert-danger text-center" role="alert">
+          {error}
+        </div>
+      ) : (
+        <>
+          {orders.filter((order) => order.status === statusFilter).length === 0 ? (
+            <p className="text-white text-center">No {title.toLowerCase()}.</p>
+          ) : (
+            orders
+              .filter((order) => order.status === statusFilter)
+              .map((order) => <OrderCard key={order.order_id} order={order} showIcon={true} />)
+          )}
+        </>
+      )}
     </div>
   );
 
@@ -261,9 +278,6 @@ const OrderCard = ({ order, showIcon }) => {
               }}
             >
               C D S
-              <div style={{ fontSize: "12px", fontWeight: "normal", color: "#666", marginTop: "2px" }}>
-                Showing: {dateRange === "today" ? "Today's Orders" : "All Orders"}
-              </div>
             </div>
 
             {/* Navigation Links */}
@@ -506,55 +520,13 @@ const OrderCard = ({ order, showIcon }) => {
           </div>
         )}
 
-        {selectedOutlet && !loading && !error && orders.length === 0 && (
-          <div className="text-center mt-3" style={{ fontWeight: "bold" }}>
-            No orders found for selected outlet.
-          </div>
-        )}
-
         <div className="row g-0 min-vh-100" style={{ height: "90vh" }}>
           {/* PLACED */}
-          <div className="col-12 col-md-4 bg-secondary p-4" style={{ minHeight: "90vh" }}>
-            <h3
-              className="text-white text-center fw-bold mb-4"
-              style={{ fontSize: "2.6rem", letterSpacing: "2px" }}
-            >
-              PLACED
-            </h3>
-            {orders
-              .filter((order) => order.status === "placed")
-              .map((order) => (
-                <OrderCard key={order.order_id} order={order} showIcon={true} />
-              ))}
-          </div>
+          {renderOrdersInSection("placed", "PLACED", "bg-secondary")}
           {/* COOKING */}
-          <div className="col-12 col-md-4 bg-warning p-4" style={{ minHeight: "90vh" }}>
-            <h3
-              className="text-white text-center fw-bold mb-4"
-              style={{ fontSize: "2.6rem", letterSpacing: "2px" }}
-            >
-              COOKING
-            </h3>
-            {orders
-              .filter((order) => order.status === "ongoing")
-              .map((order) => (
-                <OrderCard key={order.order_id} order={order} showIcon={true} />
-              ))}
-          </div>
+          {renderOrdersInSection("ongoing", "COOKING", "bg-warning")}
           {/* PICKUP */}
-          <div className="col-12 col-md-4 bg-success p-4" style={{ minHeight: "90vh" }}>
-            <h3
-              className="text-white text-center fw-bold mb-4"
-              style={{ fontSize: "2.6rem", letterSpacing: "2px" }}
-            >
-              PICKUP
-            </h3>
-            {orders
-              .filter((order) => order.status === "completed")
-              .map((order) => (
-                <OrderCard key={order.order_id} order={order} showIcon={true} />
-              ))}
-          </div>
+          {renderOrdersInSection("completed", "PICKUP", "bg-success")}
         </div>
       </div>
     </>
