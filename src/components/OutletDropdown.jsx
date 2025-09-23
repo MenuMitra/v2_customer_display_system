@@ -8,6 +8,7 @@ const OutletDropdown = ({ onSelect }) => {
   const [show, setShow] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
+  const [hoveredOutletId, setHoveredOutletId] = useState(null);
 
   useEffect(() => {
     // Get user info including user_id and role from localStorage authData
@@ -19,6 +20,14 @@ const OutletDropdown = ({ onSelect }) => {
         return null;
       }
     })();
+    const toCamelCase = (str) => {
+      return str
+        .toLowerCase()
+        .split(" ")
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    };
+    
 
     const token = authData ? authData.access_token : null;
     const userId = authData ? authData.user_id || authData.owner_id : null;
@@ -91,6 +100,13 @@ const OutletDropdown = ({ onSelect }) => {
     setSearchTerm("");
     if (onSelect) onSelect(outlet);
   };
+  const toCamelCase = (str) => {
+    return str
+      .toLowerCase()
+      .split(" ")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
 
   return (
     <div ref={dropdownRef} className="relative inline-block min-w-220px" style={{ position: "relative", borderRadius: "3px" }}>
@@ -117,7 +133,7 @@ const OutletDropdown = ({ onSelect }) => {
           transition: "background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease",
         }}
       >
-        <span>{selected ? selected.name : "Select Outlet"}</span>
+        <span>{selected ? toCamelCase (selected.name) : "Select Outlet"}</span>
         <span style={{ display: "inline-block", width: "24px", height: "24px", verticalAlign: "middle", margin: "2px", transition: "transform 0.3s ease", transform: show ? "rotate(180deg)" : "rotate(0deg)" }}>
           <svg width="24" height="24" viewBox="0 0 24 24" style={{ display: "block" }} xmlns="http://www.w3.org/2000/svg">
             <polyline points="6 9 12 15 18 9" fill="none" stroke="#878a95" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -125,7 +141,7 @@ const OutletDropdown = ({ onSelect }) => {
         </span>
       </button>
       {show && (
-        <div className="dropdown-menu show shadow overflow-hidden" style={{ maxHeight: "290px", minWidth: "290px", overflowY: "auto", background: "#d1d3d4" }}>
+        <div className="dropdown-menu show shadow overflow-hidden" style={{ maxHeight: "440px", minWidth: "290px", overflowY: "auto", background: "#d1d3d4" }}>
           <div className="p-2" style={{ background: "#d1d3d4" }}>
             <input
               type="search"
@@ -167,18 +183,20 @@ const OutletDropdown = ({ onSelect }) => {
                       color: "#222",
                       fontWeight: 500,
                       borderRadius: "12px",
-                      border: "none",
+                      border: hoveredOutletId === outlet.outlet_id ? "1.5px solid #0d6efd" : "1.5px solid transparent",
                       padding: "0 1rem", // horizontal padding to match input
                       minHeight: "6rem", // same min height as search bar
                       width: "100%",
                       textAlign: "left",
-                      boxShadow: "0 1px 2px rgba(68, 73, 78, 0.11)",
+                      boxShadow: hoveredOutletId === outlet.outlet_id ? "0 4px 16px rgba(13,110,253,0.18)" : "0 1px 2px rgba(68, 73, 78, 0.11)",
                       fontSize: "1.25rem", // same font size as input
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "center",
                       gap: "1px"
                     }}
+                    onMouseEnter={() => setHoveredOutletId(outlet.outlet_id)}
+                    onMouseLeave={() => setHoveredOutletId(null)}
                   >
                     <span style={{ fontWeight: 700 }}>
                       {outlet.name} <span style={{ fontSize: "0.95rem", color: "#b0b6bb", fontWeight: 400 }}>{outlet.outlet_code}</span>

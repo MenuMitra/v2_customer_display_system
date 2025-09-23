@@ -96,7 +96,7 @@ const OutletSelectorDropdown = ({ onSelect }) => {
             outlets.map((outlet) => (
               <li key={outlet.outlet_id}>
                 <button
-                  className={`dropdown-item w-full text-left ${
+                  className={`dropdown-item w-full text-left outlet-list-items ${
                     selected && selected.outlet_id === outlet.outlet_id
                       ? "font-bold bg-blue-100 text-blue-600"
                       : ""

@@ -142,55 +142,56 @@ function Header({ outletName, onRefresh }) {
       ? { header: "display-4", orderNumber: "display-5", itemCount: "display-6" }
       : { header: "h4", orderNumber: "h5", itemCount: "h6" };
 
-  const OrderCard = ({ order, showIcon }) => {
-    const menuCount = order.menu_details
-      ? order.menu_details.reduce((total, menu) => total + menu.quantity, 0)
-      : 0;
-    return (
-      <div
-        className="bg-white rounded-3 mb-2 p-3"
-        style={{
-          margin: "12px",
-          fontSize: "1.8rem",
-        }}
-      >
-        <div className="d-flex justify-content-between align-items-center">
-          <h2
-            style={{
-              fontSize: "1.8rem",
-              fontWeight: "bold",
-              marginBottom: 0,
-              display: "inline",
-            }}
-          >
-            #{order.order_number}
-          </h2>
+      const OrderCard = ({ order, showIcon }) => {
+        // Count the number of distinct menu items
+        const menuCount = order.menu_details ? order.menu_details.length : 0;
+      
+        return (
           <div
+            className="bg-white rounded-3 mb-2 p-3"
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
+              margin: "12px",
               fontSize: "1.8rem",
             }}
           >
-            <span>{menuCount}</span>
-            {showIcon && (
-              <img
-                src={foodIcon}
-                alt="Food Icon"
+            <div className="d-flex justify-content-between align-items-center">
+              <h2
                 style={{
-                  height: "2.2rem",
-                  width: "2.2rem",
-                  verticalAlign: "middle",
+                  fontSize: "1.8rem",
+                  fontWeight: "bold",
                   marginBottom: 0,
+                  display: "inline",
                 }}
-              />
-            )}
+              >
+                #{order.order_number}
+              </h2>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontSize: "1.8rem",
+                }}
+              >
+                <span>{menuCount}</span>
+                {showIcon && (
+                  <img
+                    src={foodIcon}
+                    alt="Food Icon"
+                    style={{
+                      height: "2.2rem",
+                      width: "2.2rem",
+                      verticalAlign: "middle",
+                      marginBottom: 0,
+                    }}
+                  />
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    );
-  };
+        );
+      };
+      
 
   const renderOrdersInSection = (statusFilter, title, bgColorClass) => (
     <div className={`col-12 col-md-4 ${bgColorClass}`} style={{ minHeight: "90vh" }}>
@@ -493,22 +494,26 @@ function Header({ outletName, onRefresh }) {
                 </div>
                 <div
                   className="modal-footer d-flex justify-content-center"
-                  style={{ borderTop: "1px solid #dee2e6", paddingTop: "15px", paddingBottom: "15px" }}
+                  style={{ borderTop: "1px solid #dee2e6", paddingTop: "10px", paddingBottom: "15px" }}
                 >
-                  <button
-                    type="button"
-                    className="btn btn-secondary me-2 "
-                    onClick={() => handleLogoutConfirm(false)}
-                  >
-                    <i className="fa-solid fa-xmark me-1"></i> Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    onClick={() => handleLogoutConfirm(true)}
-                  >
-                    <i className="fa-solid fa-right-from-bracket me-2"></i> Exit Me
-                  </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '50px' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => handleLogoutConfirm(false)}
+                    >
+                      <i className="fa-solid fa-xmark me-1"></i> Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={() => handleLogoutConfirm(true)}
+                    >
+                      <i className="fa-solid fa-right-from-bracket me-2"></i> Exit Me
+                    </button>
+                  </div>
+
+                  
                 </div>
               </div>
             </div>

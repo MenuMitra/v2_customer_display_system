@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { authService } from "../services/authService";
@@ -10,6 +10,7 @@ function Login() {
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otpValues, setOtpValues] = useState(["", "", "", ""]);
   const [error, setError] = useState("");
+  const [timer, setTimer] = useState(0); // seconds left to allow resend
   const navigate = useNavigate();
   const otpRefs = [useRef(), useRef(), useRef(), useRef()];
 
@@ -26,6 +27,7 @@ function Login() {
       if (response.success) {
         setShowOtpInput(true);
         setOtpValues(["", "", "", ""]);
+        setTimer(30);
       } else {
         setError(response.error || "Failed to send OTP");
       }
@@ -35,6 +37,15 @@ function Login() {
       setLoading(false);
     }
   };
+
+  // countdown effect for resend timer
+  useEffect(() => {
+    if (!showOtpInput || timer <= 0) return;
+    const id = setInterval(() => {
+      setTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [showOtpInput, timer]);
 
   const handleOtpChange = (index, value) => {
     if (value.length > 1) value = value[0];
@@ -50,6 +61,25 @@ function Login() {
   const handleKeyDown = (index, e) => {
     if (e.key === "Backspace" && !otpValues[index] && index > 0) {
       otpRefs[index - 1].current.focus();
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (timer > 0) return; // prevent early clicks
+    setError("");
+    setOtpValues(["", "", "", ""]);
+    try {
+      setLoading(true);
+      const response = await authService.resendOTP(mobileNumber);
+      if (response.success) {
+        setTimer(30);
+      } else {
+        setError(response.error || "Failed to resend OTP");
+      }
+    } catch {
+      setError("Failed to resend OTP, please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,7 +106,6 @@ function Login() {
     }
   };
 
-  // New function to go back to mobile input
   const handleBackToLogin = () => {
     setShowOtpInput(false);
     setError("");
@@ -92,7 +121,7 @@ function Login() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "center"
       }}
     >
       <div
@@ -107,7 +136,7 @@ function Login() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          margin: "11px 0 6px 0",
+          margin: "11px 0 6px 0"
         }}
       >
         {/* Logo, Title, Subtitle Section */}
@@ -116,7 +145,7 @@ function Login() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            width: "100%",
+            width: "100%"
           }}
         >
           <img
@@ -130,10 +159,21 @@ function Login() {
               fontSize: "1.50rem",
               textAlign: "center",
               color: "#22242c",
-              marginBottom: "7px",
+              marginBottom: "7px"
             }}
           >
             MenuMitra
+          </div>
+          <div
+            style={{
+              fontWeight: 600,
+              fontSize: "1.50rem",
+              textAlign: "center",
+              color: "#22242c",
+              marginBottom: "20px"
+            }}
+          >
+            Customer Display System
           </div>
           <div
             style={{
@@ -141,7 +181,7 @@ function Login() {
               fontSize: "1rem",
               textAlign: "center",
               fontWeight: 400,
-              marginBottom: "22px",
+              marginBottom: "22px"
             }}
           >
             Sign in to continue to your account
@@ -162,7 +202,7 @@ function Login() {
                 marginBottom: "10px",
                 textAlign: "center",
                 marginLeft: "60px",
-                marginRight: "10px",
+                marginRight: "10px"
               }}
             >
               {error}
@@ -177,7 +217,7 @@ function Login() {
                   fontWeight: 400,
                   marginBottom: 6,
                   display: "block",
-                  color: "#22242c",
+                  color: "#22242c"
                 }}
               >
                 Mobile Number <span style={{ color: "#cb1227" }}>*</span>
@@ -189,45 +229,40 @@ function Login() {
                 name="mobile"
                 placeholder="Enter your mobile number"
                 value={mobileNumber}
-                onChange={(e) =>
-                  setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
-                }
+                onChange={e => setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
                 autoFocus={!showOtpInput}
                 disabled={showOtpInput}
                 style={{
                   fontSize: "1.08rem",
                   padding: "12px",
                   borderRadius: "8px",
-                  border: "1.1px solid #ddd",
+                  border: "0.6px solid #ddd",
                   height: "48px",
                   marginBottom: "12px",
                   background: showOtpInput ? "#f3f4f7" : "#fff",
                   color: showOtpInput ? "#a0a4b0" : "#22242c",
-                  transition: "background 0.2s",
+                  transition: "background 0.2s"
                 }}
               />
               <button
                 className="btn btn-primary w-100"
                 type="submit"
-                disabled={loading}
+                disabled={loading || mobileNumber.length !== 10}
                 style={{
                   padding: "15px 0",
                   fontSize: "1.11rem",
                   borderRadius: "10px",
-                  background: "#178be2",
+                  background: mobileNumber.length === 10 && !loading ? "#178be2" : "#e5e7eb",
                   color: "#fff",
                   border: "none",
-                  marginTop: "2px",
+                  marginTop: "12px",
+                  marginBottom: "0",
                   fontWeight: 600,
-                  boxShadow: "0 1px 4px rgba(44,51,73,0.07)",
+                  boxShadow: "0 1px 4px rgba(44,51,73,0.07)"
                 }}
               >
                 {loading ? (
-                  <span
-                    className="spinner-border spinner-border-sm"
-                    role="status"
-                    aria-hidden="true"
-                  />
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
                 ) : (
                   "Send OTP"
                 )}
@@ -258,20 +293,52 @@ function Login() {
                       border: "1px solid #cbcfd5",
                       boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                       background: "#fff",
-                      transition: "box-shadow 0.3s ease",
+                      transition: "box-shadow 0.3s ease"
                     }}
                     value={value}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    onChange={e => handleOtpChange(index, e.target.value)}
+                    onKeyDown={e => handleKeyDown(index, e)}
                     maxLength={1}
                     autoFocus={index === 0}
                   />
                 ))}
               </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '200px', marginBottom: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={timer > 0 || loading}
+                    className="text-base font-medium focus:outline-none focus:underline"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      color: timer > 0 || loading ? '#9ca3af' : '#2563eb',
+                      cursor: timer > 0 || loading ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {timer > 0 ? `Resend OTP (${timer}s)` : "Resend OTP"}
+                  </button>
+                  <button
+                    onClick={handleBackToLogin}
+                    type="button"
+                    className="text-base font-medium focus:outline-none focus:underline"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      color: '#2563eb' // Always blue color here
+                    }}
+                  >
+                    Back to login
+                  </button>
+                </div>
+
+
               <button
                 className="btn btn-primary w-100"
                 type="submit"
-                disabled={loading}
+                disabled={loading || otpValues.some(digit => !digit)}
                 style={{
                   padding: "14px 0",
                   fontSize: "1.10rem",
@@ -280,40 +347,19 @@ function Login() {
                   color: "#fff",
                   border: "none",
                   fontWeight: 600,
-                  boxShadow: "0 1px 4px rgba(44,51,73,0.07)",
+                  boxShadow: "0 1px 4px rgba(44,51,73,0.07)"
                 }}
               >
                 {loading ? (
-                  <span
-                    className="spinner-border spinner-border-sm"
-                    role="status"
-                    aria-hidden="true"
-                  />
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
                 ) : (
                   "Verify OTP"
                 )}
               </button>
-              {/* Back to login */}
-              <div
-                onClick={handleBackToLogin}
-                style={{
-                  marginTop: "12px",
-                  fontSize: "1rem",
-                  color: "#178be2",
-                  fontWeight: 600,
-                  textAlign: "center",
-                  cursor: "pointer",
-                  userSelect: "none",
-                }}
-              >
-                Back to login
-              </div>
             </div>
           )}
         </form>
       </div>
-
-      {/* Navigation Links with correct hrefs */}
       <nav
         style={{
           display: "flex",
@@ -322,55 +368,22 @@ function Login() {
           marginBottom: "10px",
           maxWidth: "440px",
           width: "100%",
-          justifyContent: "center",
+          justifyContent: "center"
         }}
       >
-        <a
-          href="https://menumitra.com/"
-          style={{
-            color: "#757c8a",
-            fontWeight: 450,
-            fontSize: "0.9rem",
-            textDecoration: "none",
-          }}
-        >
+        <a href="https://menumitra.com/" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
           Home
         </a>
-        <a
-          href="https://menumitra.com/book_demo"
-          style={{
-            color: "#757c8a",
-            fontWeight: 450,
-            fontSize: "0.9rem",
-            textDecoration: "none",
-          }}
-        >
+        <a href="https://menumitra.com/book_demo" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
           Book a demo
         </a>
-        <a
-          href="https://menumitra.com/about_us"
-          style={{
-            color: "#757c8a",
-            fontWeight: 450,
-            fontSize: "0.9rem",
-            textDecoration: "none",
-          }}
-        >
+        <a href="https://menumitra.com/about_us" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
           Contact
         </a>
-        <a
-          href="https://menumitra.com/support"
-          style={{
-            color: "#757c8a",
-            fontWeight: 450,
-            fontSize: "0.9rem",
-            textDecoration: "none",
-          }}
-        >
+        <a href="https://menumitra.com/support" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
           Support
         </a>
       </nav>
-
       <Footer />
     </div>
   );

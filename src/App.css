@@ -6,6 +6,13 @@
   border-top: 1px solid #e5e7eb;
 }
 
+/* Outlet list hover effect */
+.outlet-list-items:hover {
+  box-shadow: 0 4px 16px rgba(13,110,253,0.18);
+  border-color: #0d6efd;
+  background: #fff; /* highlight on hover */
+}
+
 /* Brand Row */
 .cds-footer-brand {
   display: inline-flex;
