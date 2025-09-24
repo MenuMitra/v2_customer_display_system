@@ -11,6 +11,7 @@ function Login() {
   const [otpValues, setOtpValues] = useState(["", "", "", ""]);
   const [error, setError] = useState("");
   const [timer, setTimer] = useState(0); // seconds left to allow resend
+  const [otpError, setOtpError] = useState(false);
   const navigate = useNavigate();
   const otpRefs = [useRef(), useRef(), useRef(), useRef()];
 
@@ -28,6 +29,7 @@ function Login() {
         setShowOtpInput(true);
         setOtpValues(["", "", "", ""]);
         setTimer(30);
+        setOtpError(false);
       } else {
         setError(response.error || "Failed to send OTP");
       }
@@ -53,6 +55,7 @@ function Login() {
     const newOtpValues = [...otpValues];
     newOtpValues[index] = value;
     setOtpValues(newOtpValues);
+    if (otpError) setOtpError(false);
     if (value !== "" && index < 3) {
       otpRefs[index + 1].current.focus();
     }
@@ -68,6 +71,7 @@ function Login() {
     if (timer > 0) return; // prevent early clicks
     setError("");
     setOtpValues(["", "", "", ""]);
+    setOtpError(false);
     try {
       setLoading(true);
       const response = await authService.resendOTP(mobileNumber);
@@ -98,9 +102,11 @@ function Login() {
         navigate("/orders");
       } else {
         setError(response.error || "Invalid OTP");
+        setOtpError(true);
       }
     } catch (error) {
       setError("Something went wrong. Please try again.");
+      setOtpError(true);
     } finally {
       setLoading(false);
     }
@@ -109,6 +115,7 @@ function Login() {
   const handleBackToLogin = () => {
     setShowOtpInput(false);
     setError("");
+    setOtpError(false);
   };
 
   return (
@@ -290,7 +297,7 @@ function Login() {
                       fontSize: "1.15rem",
                       margin: "15px",
                       borderRadius: "8px",
-                      border: "1px solid #cbcfd5",
+                      border: otpError ? "1px solid #dc3545" : "1px solid #cbcfd5",
                       boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                       background: "#fff",
                       transition: "box-shadow 0.3s ease"

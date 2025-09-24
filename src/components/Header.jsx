@@ -231,14 +231,16 @@ function Header({ outletName, onRefresh }) {
         },
         body: JSON.stringify(logoutData),
       });
-      const data = await response.json();
-      if (data.st === 1) {
-        localStorage.clear();
-      }
-      navigate("/login");
+      // Best-effort: don't block on parsing
+      await response.json().catch(() => null);
     } catch (error) {
       console.error("Error logging out:", error);
       window.showToast("error", error.message || "Failed to log out.");
+    } finally {
+      // Always clear local storage and redirect to login on Exit
+      localStorage.clear();
+      window.dispatchEvent(new CustomEvent('logout'));
+      navigate("/login");
     }
   };
 

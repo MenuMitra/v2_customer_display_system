@@ -3,6 +3,7 @@ import LoginScreen from './screens/LoginScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import OrdersScreen from './screens/OrdersScreen';
 import Login from './screens/Login';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 import "remixicon/fonts/remixicon.css";
 
@@ -14,7 +15,16 @@ function App() {
         {/* <Route path="/login" element={<LoginScreen />} /> */}
         <Route path="/login" element={<Login />} />
         {/* <Route path="/dashboard" element={<DashboardScreen />} /> */}
-        <Route path="/orders" element={<OrdersScreen />} />
+        
+        {/* Protected Routes */}
+        <Route 
+          path="/orders" 
+          element={
+            <ProtectedRoute>
+              <OrdersScreen />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* Redirects */}
         <Route path="/" element={<Navigate to="/login" replace />} />
