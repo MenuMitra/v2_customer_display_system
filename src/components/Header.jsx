@@ -525,35 +525,34 @@ function Header({ outletName, onRefresh }) {
 
       {/* Orders Display Sections */}
       <div className="container-fluid p-0">
-        {!selectedOutlet && (
-          <div
-            style={{
-              fontWeight: "bold",
-              textAlign: "center",
-              marginTop: "1rem",
-              color: "#000",
-            }}
-          ></div>
-        )}
-
-        {error && (
-          <div
-            className="alert alert-danger text-center mt-3"
-            role="alert"
-            style={{ fontWeight: "bold" }}
-          >
-            {error}
+        {!selectedOutlet ? (
+          <div>
+            <div className="alert alert-warning text-center mb-0 rounded-0">
+              Please select an outlet to view orders.
+            </div>
           </div>
-        )}
+        ) : (
+          <>
+            {error && (
+              <div
+                className="alert alert-danger text-center mt-3"
+                role="alert"
+                style={{ fontWeight: "bold" }}
+              >
+                {error}
+              </div>
+            )}
 
-        <div className="row g-0 min-vh-100" style={{ height: "90vh" }}>
-          {/* PLACED */}
-          {renderOrdersInSection("placed", "PLACED", "bg-secondary")}
-          {/* COOKING */}
-          {renderOrdersInSection("ongoing", "COOKING", "bg-warning")}
-          {/* PICKUP */}
-          {renderOrdersInSection("completed", "PICKUP", "bg-success")}
-        </div>
+            <div className="row g-0 min-vh-100" style={{ height: "90vh" }}>
+              {/* PLACED */}
+              {renderOrdersInSection("placed", "PLACED", "bg-secondary")}
+              {/* COOKING */}
+              {renderOrdersInSection("ongoing", "COOKING", "bg-warning")}
+              {/* PICKUP */}
+              {renderOrdersInSection("completed", "PICKUP", "bg-success")}
+            </div>
+          </>
+        )}
       </div>
     </>
   );
