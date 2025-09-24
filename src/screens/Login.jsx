@@ -12,6 +12,7 @@ function Login() {
   const [error, setError] = useState("");
   const [timer, setTimer] = useState(0); // seconds left to allow resend
   const [otpError, setOtpError] = useState(false);
+  const [activeOtpIndex, setActiveOtpIndex] = useState(null);
   const navigate = useNavigate();
   const otpRefs = [useRef(), useRef(), useRef(), useRef()];
 
@@ -23,7 +24,6 @@ function Login() {
       return;
     }
     try {
-      setLoading(true);
       const response = await authService.sendOTP(mobileNumber);
       if (response.success) {
         setShowOtpInput(true);
@@ -36,7 +36,6 @@ function Login() {
     } catch (error) {
       setError("Something went wrong. Please try again.");
     } finally {
-      setLoading(false);
     }
   };
 
@@ -73,7 +72,6 @@ function Login() {
     setOtpValues(["", "", "", ""]);
     setOtpError(false);
     try {
-      setLoading(true);
       const response = await authService.resendOTP(mobileNumber);
       if (response.success) {
         setTimer(30);
@@ -83,7 +81,6 @@ function Login() {
     } catch {
       setError("Failed to resend OTP, please try again.");
     } finally {
-      setLoading(false);
     }
   };
 
@@ -96,7 +93,6 @@ function Login() {
       return;
     }
     try {
-      setLoading(true);
       const response = await authService.verifyOTP(mobileNumber, otp);
       if (response.success) {
         navigate("/orders");
@@ -108,7 +104,6 @@ function Login() {
       setError("Something went wrong. Please try again.");
       setOtpError(true);
     } finally {
-      setLoading(false);
     }
   };
 
@@ -254,7 +249,7 @@ function Login() {
               <button
                 className="btn btn-primary w-100"
                 type="submit"
-                disabled={loading || mobileNumber.length !== 10}
+                disabled={mobileNumber.length !== 10}
                 style={{
                   padding: "15px 0",
                   fontSize: "1.11rem",
@@ -268,11 +263,7 @@ function Login() {
                   boxShadow: "0 1px 4px rgba(44,51,73,0.07)"
                 }}
               >
-                {loading ? (
-                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-                ) : (
-                  "Send OTP"
-                )}
+                {"Send OTP"}
               </button>
             </div>
           )}
@@ -298,13 +289,17 @@ function Login() {
                       margin: "15px",
                       borderRadius: "8px",
                       border: otpError ? "1px solid #dc3545" : "1px solid #cbcfd5",
-                      boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                      boxShadow: index === activeOtpIndex && !otpError ? "0 0 0 3px rgba(37, 99, 235, 0.35)" : "0 2px 5px rgba(0, 0, 0, 0.1)",
                       background: "#fff",
-                      transition: "box-shadow 0.3s ease"
+                      transition: "box-shadow 0.2s ease"
                     }}
                     value={value}
                     onChange={e => handleOtpChange(index, e.target.value)}
                     onKeyDown={e => handleKeyDown(index, e)}
+                    onFocus={() => setActiveOtpIndex(index)}
+                    onBlur={() => setActiveOtpIndex(prev => (prev === index ? null : prev))}
+                    onMouseEnter={() => setActiveOtpIndex(index)}
+                    onMouseLeave={() => setActiveOtpIndex(prev => (prev === index ? null : prev))}
                     maxLength={1}
                     autoFocus={index === 0}
                   />
@@ -314,14 +309,14 @@ function Login() {
                   <button
                     type="button"
                     onClick={handleResendOtp}
-                    disabled={timer > 0 || loading}
+                    disabled={timer > 0}
                     className="text-base font-medium focus:outline-none focus:underline"
                     style={{
                       background: 'none',
                       border: 'none',
                       padding: 0,
-                      color: timer > 0 || loading ? '#9ca3af' : '#2563eb',
-                      cursor: timer > 0 || loading ? 'not-allowed' : 'pointer'
+                      color: timer > 0 ? '#9ca3af' : '#2563eb',
+                      cursor: timer > 0 ? 'not-allowed' : 'pointer'
                     }}
                   >
                     {timer > 0 ? `Resend OTP (${timer}s)` : "Resend OTP"}
@@ -345,7 +340,7 @@ function Login() {
               <button
                 className="btn btn-primary w-100"
                 type="submit"
-                disabled={loading || otpValues.some(digit => !digit)}
+                disabled={otpValues.some(digit => !digit)}
                 style={{
                   padding: "14px 0",
                   fontSize: "1.10rem",
@@ -357,11 +352,7 @@ function Login() {
                   boxShadow: "0 1px 4px rgba(44,51,73,0.07)"
                 }}
               >
-                {loading ? (
-                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-                ) : (
-                  "Verify OTP"
-                )}
+                {"Verify OTP"}
               </button>
             </div>
           )}

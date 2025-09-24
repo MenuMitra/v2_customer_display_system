@@ -524,7 +524,7 @@ function Header({ outletName, onRefresh }) {
       )}
 
       {/* Orders Display Sections */}
-      <div className="container-fluid p-0">
+      <div className="container-fluid p-0" style={{ background: "#fff", minHeight: "90vh" }}>
         {!selectedOutlet ? (
           <div>
             <div className="alert alert-warning text-center mb-0 rounded-0">
