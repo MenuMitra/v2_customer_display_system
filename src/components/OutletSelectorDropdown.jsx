@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { handleSessionExpired } from "../utils/sessionUtils";
 
 const OutletSelectorDropdown = ({ onSelect }) => {
   const [outlets, setOutlets] = useState([]);
@@ -30,9 +31,26 @@ const OutletSelectorDropdown = ({ onSelect }) => {
       },
       body: JSON.stringify({ owner_id: 1, app_source: "admin", outlet_id: 642 }),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        // Check for 401 status
+        if (res.status === 401) {
+          return res.json().then(errorData => {
+            const errorMessage = errorData?.detail || "";
+            if (errorMessage.includes("Invalid or inactive session") || 
+                errorMessage.includes("401") ||
+                res.status === 401) {
+              handleSessionExpired();
+              return;
+            }
+            throw new Error(errorMessage || "Unauthorized");
+          });
+        }
+        return res.json();
+      })
       .then((data) => {
-        setOutlets(Array.isArray(data.outlets) ? data.outlets : []);
+        if (data) {
+          setOutlets(Array.isArray(data.outlets) ? data.outlets : []);
+        }
         setLoading(false);
       })
       .catch(() => {

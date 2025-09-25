@@ -4,6 +4,7 @@ import axios from "axios";
 import logo from "../assets/logo.png";
 import OutletDropdown from "./OutletDropdown";
 import foodIcon from "../assets/food_icon.jpg";
+import { handleApiError } from "../utils/sessionUtils";
 
 function Header({ outletName, onRefresh }) {
   const location = useLocation();
@@ -88,12 +89,18 @@ function Header({ outletName, onRefresh }) {
         setOrders(allOrders);
       }
     } catch (err) {
+      // Check if it's a session expiration error and handle it
+      if (handleApiError(err, navigate)) {
+        return; // Session expired, user will be redirected
+      }
       setError("Failed to fetch orders. Please try again.");
       setOrders([]);
     } finally {
       setLoading(false);
     }
   };
+
+  // Removed background get_outlet_list heartbeat to avoid repeated calls
 
   const handleOutletSelect = (outlet) => {
     setSelectedOutlet(outlet);
@@ -116,7 +123,7 @@ function Header({ outletName, onRefresh }) {
     if (!selectedOutlet) return;
     const interval = setInterval(() => {
       fetchOrders(selectedOutlet.outlet_id);
-    }, 10000);
+    }, 5000);
     return () => clearInterval(interval);
   }, [selectedOutlet, dateRange]);
   useEffect(() => {

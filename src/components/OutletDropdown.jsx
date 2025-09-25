@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { handleSessionExpired } from "../utils/sessionUtils";
 
 const OutletDropdown = ({ onSelect }) => {
   const [outlets, setOutlets] = useState([]);
@@ -54,11 +55,28 @@ const OutletDropdown = ({ onSelect }) => {
         outlet_id: 0, // or null if need all for that user
       }),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        // Check for 401 status
+        if (res.status === 401) {
+          return res.json().then(errorData => {
+            const errorMessage = errorData?.detail || "";
+            if (errorMessage.includes("Invalid or inactive session") || 
+                errorMessage.includes("401") ||
+                res.status === 401) {
+              handleSessionExpired();
+              return;
+            }
+            throw new Error(errorMessage || "Unauthorized");
+          });
+        }
+        return res.json();
+      })
       .then((data) => {
-        const outletsData = Array.isArray(data.outlets) ? data.outlets : [];
-        setOutlets(outletsData);
-        setFilteredOutlets(outletsData);
+        if (data) {
+          const outletsData = Array.isArray(data.outlets) ? data.outlets : [];
+          setOutlets(outletsData);
+          setFilteredOutlets(outletsData);
+        }
         setLoading(false);
       })
       .catch(() => {
@@ -141,7 +159,7 @@ const OutletDropdown = ({ onSelect }) => {
         </span>
       </button>
       {show && (
-        <div className="dropdown-menu show shadow overflow-hidden" style={{ maxHeight: "440px", minWidth: "290px", overflowY: "auto", background: "#d1d3d4" }}>
+        <div className="dropdown-menu show shadow overflow-hidden" style={{ maxHeight: "440px", maxWidth: "300px", overflowY: "auto", overflowX: "hidden", background: "#d1d3d4" }}>
           <div className="p-2" style={{ background: "#d1d3d4" }}>
             <input
               type="search"
@@ -160,7 +178,7 @@ const OutletDropdown = ({ onSelect }) => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <ul style={{ maxHeight: "250px", overflowY: "auto", paddingLeft: 0, marginBottom: 0, background: "#d1d3d4" }}>
+          <ul style={{ maxHeight: "250px", overflowY: "auto", overflowX: "hidden", paddingLeft: 0, marginBottom: 0, background: "#d1d3d4" }}>
             {loading && <li className="dropdown-item">Loading...</li>}
             {!loading && filteredOutlets.length === 0 && (
               <li className="dropdown-item text-center text-muted">No outlets found</li>
