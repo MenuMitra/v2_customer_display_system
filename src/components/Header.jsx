@@ -15,6 +15,17 @@ function Header({ outletName, onRefresh }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [screenSize, setScreenSize] = useState(window.innerWidth);
+  const [singleOutlet, setSingleOutlet] = useState(false);
+  const [singleOutletName, setSingleOutletName] = useState("");
+
+  const toTitleCase = (name) => {
+    if (!name || typeof name !== "string") return "";
+    return name
+      .toLowerCase()
+      .split(/\s+/)
+      .map((word) => (word ? word.charAt(0).toUpperCase() + word.slice(1) : ""))
+      .join(" ");
+  };
 
   const [dateRange, setDateRange] = useState(() => {
     const persisted = localStorage.getItem("statistics_date_range");
@@ -52,6 +63,36 @@ function Header({ outletName, onRefresh }) {
       console.error("Failed to parse authData", err);
     }
   }
+
+  // Detect if owner has exactly one outlet -> auto-select and hide dropdown
+  useEffect(() => {
+    try {
+      const parsed = authData ? JSON.parse(authData) : null;
+      const accessToken = parsed ? parsed.access_token : null;
+      const ownerId = parsed ? (parsed.user_id || parsed.owner_id || null) : null;
+      if (!accessToken || !ownerId) return;
+
+      fetch("https://men4u.xyz/v2/common/get_outlet_list", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ owner_id: ownerId, app_source: "admin", outlet_id: 0 }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const outlets = Array.isArray(data?.outlets) ? data.outlets : [];
+          if (outlets.length === 1) {
+            const only = outlets[0];
+            setSingleOutlet(true);
+            setSingleOutletName(only.name || "");
+            setSelectedOutlet(only);
+          }
+        })
+        .catch(() => {});
+    } catch {}
+  }, []);
 
   const fetchOrders = async (outletId) => {
     if (!outletId) return;
@@ -289,7 +330,13 @@ function Header({ outletName, onRefresh }) {
               />
               <span className="fs-4 fw-bold text-dark">Menumitra</span>
               <div>
-                <OutletDropdown onSelect={handleOutletSelect} />
+                {singleOutlet ? (
+                  <span style={{ fontSize: "1.3rem", color: "#9aa0a6", fontWeight: 600 }}>
+                    {toTitleCase(singleOutletName)}
+                  </span>
+                ) : (
+                  <OutletDropdown onSelect={handleOutletSelect} />
+                )}
               </div>
             </div>
             {/* Center Title */}
@@ -508,15 +555,30 @@ function Header({ outletName, onRefresh }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '50px' }}>
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="btn"
                       onClick={() => handleLogoutConfirm(false)}
+                      style={{
+                        backgroundColor: "white",
+                        color: "#6c757d",
+                        border: "1px solid #6c757d",
+                        borderRadius: "15px",
+                        padding: "8px 16px",
+                        transition: "background-color 0.15s ease-in-out"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#e9ecef";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "white";
+                      }}
                     >
-                      <i className="fa-solid fa-xmark me-1"></i> Cancel
+                      Cancel
                     </button>
                     <button
                       type="button"
                       className="btn btn-danger"
                       onClick={() => handleLogoutConfirm(true)}
+                      style={{ borderRadius: "15px" }}
                     >
                       <i className="fa-solid fa-right-from-bracket me-2"></i> Exit Me
                     </button>

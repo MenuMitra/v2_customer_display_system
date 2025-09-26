@@ -159,7 +159,7 @@ const OutletDropdown = ({ onSelect }) => {
         </span>
       </button>
       {show && (
-        <div className="dropdown-menu show shadow overflow-hidden" style={{ maxHeight: "440px", maxWidth: "300px", overflowY: "auto", overflowX: "hidden", background: "#d1d3d4" }}>
+        <div className="dropdown-menu show shadow overflow-hidden" style={{ maxHeight: "440px", maxWidth: "300px", overflowY: "auto", overflowX: "hidden", background: "#fff" }}>
           <div className="p-2" style={{ background: "#d1d3d4" }}>
             <input
               type="search"
