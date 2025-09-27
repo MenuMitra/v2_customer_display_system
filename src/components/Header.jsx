@@ -5,6 +5,7 @@ import logo from "../assets/logo.png";
 import OutletDropdown from "./OutletDropdown";
 import foodIcon from "../assets/food_icon.jpg";
 import { handleApiError } from "../utils/sessionUtils";
+import SubscriptionRemainDay from "./SubscriptionRemainDay";
 
 function Header({ outletName, onRefresh }) {
   const location = useLocation();
@@ -611,6 +612,8 @@ function Header({ outletName, onRefresh }) {
                 {error}
               </div>
             )}
+
+            <SubscriptionRemainDay selectedOutlet={selectedOutlet} dateRange={dateRange} />
 
             <div className="row g-0 min-vh-100" style={{ height: "90vh" }}>
               {/* PLACED */}
