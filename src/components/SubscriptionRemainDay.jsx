@@ -94,9 +94,8 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
   };
 
   const getProgressColor = (daysRemaining) => {
-    if (daysRemaining > 15) return '#FB923C'; // Light Orange
-    if (daysRemaining > 5) return '#F59E0B'; // Yellow
-    return '#EF4444'; // Red
+    // Use teal/green color for remaining days as shown in the image
+    return '#20C997'; // Teal/Medium Green
   };
 
   if (!selectedOutlet) {
@@ -153,22 +152,29 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
                     overflow: 'hidden',
                     position: 'relative',
                     width: '100%',
-                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)',
-                    border: '1px solid #D1D5DB'
+                    display: 'flex'
                   }}
                 >
+                  {/* Completed Days - Light Gray */}
                   <div
-                    className="rounded-pill"
                     style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
                       height: '100%',
                       width: `${progressPercentage}%`,
-                      background: `linear-gradient(135deg, ${getProgressColor(daysRemaining)}, ${getProgressColor(daysRemaining)}dd)`,
+                      backgroundColor: '#E5E7EB',
                       transition: 'width 0.3s ease',
-                      zIndex: 1,
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.15)'
+                      borderRadius: progressPercentage === 100 ? '50px' : '50px 0 0 50px'
+                    }}
+                  >
+                  </div>
+                  
+                  {/* Remaining Days - Teal/Green */}
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${100 - progressPercentage}%`,
+                      backgroundColor: getProgressColor(daysRemaining),
+                      transition: 'width 0.3s ease',
+                      borderRadius: progressPercentage === 0 ? '50px' : '0 50px 50px 0'
                     }}
                   >
                   </div>
