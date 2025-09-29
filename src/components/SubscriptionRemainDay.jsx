@@ -94,23 +94,18 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
   };
 
   const getProgressColor = (daysRemaining) => {
-    // Use teal/green color for remaining days as shown in the image
-    return '#20C997'; // Teal/Medium Green
+    if (daysRemaining > 30) return '#10B981'; // green
+    if (daysRemaining < 5) return '#ef4444'; // red
+    if (daysRemaining < 15) return '#f59e0b'; // orange
+    if (daysRemaining < 30) return '#eab308'; // yellow
+    return '#10B981';
   };
 
   if (!selectedOutlet) {
     return null;
   }
 
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center py-3">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
+  // Load silently in background; keep rendering without showing loader
 
   if (error) {
     return (
@@ -137,80 +132,59 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
     <div className="container-fluid py-1" style={{ backgroundColor: '#f8f9fa' }}>
       <div className="row justify-content-center">
         <div className="col-12 col-md-5 col-lg-4">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body p-1">
-              {/* Timeline Header */}
-              <h6 className="card-title mb-1 text-dark fw-bold" style={{ fontSize: '0.85rem', color: '#374151' }}>Timeline</h6>
-              
-              {/* Progress Bar Container */}
-              <div className="mb-1">
-                <div 
-                  className="rounded-pill" 
-                  style={{ 
-                    height: '18px', 
-                    backgroundColor: '#E5E7EB',
-                    overflow: 'hidden',
-                    position: 'relative',
-                    width: '100%',
-                    display: 'flex'
-                  }}
-                >
-                  {/* Completed Days - Light Gray */}
-                  <div
-                    style={{
-                      height: '100%',
-                      width: `${progressPercentage}%`,
-                      backgroundColor: '#E5E7EB',
-                      transition: 'width 0.3s ease',
-                      borderRadius: progressPercentage === 100 ? '50px' : '50px 0 0 50px'
-                    }}
-                  >
-                  </div>
-                  
-                  {/* Remaining Days - Teal/Green */}
-                  <div
-                    style={{
-                      height: '100%',
-                      width: `${100 - progressPercentage}%`,
-                      backgroundColor: getProgressColor(daysRemaining),
-                      transition: 'width 0.3s ease',
-                      borderRadius: progressPercentage === 0 ? '50px' : '0 50px 50px 0'
-                    }}
-                  >
-                  </div>
-                </div>
-              </div>
-
-              {/* Days Information - Simple Text */}
-              <div className="row text-center">
-                <div className="col-6">
-                  <div className="text-center pe-2">
-                    <span 
-                      style={{ 
-                        color: '#6B7280',
-                        fontSize: '0.7rem',
-                        fontWeight: '400'
-                      }}
-                    >
-                      {daysCompleted} days completed
-                    </span>
+          {/* KDS-style compact card with centered progress */}
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '6px' }}>
+                <div style={{
+                  background: '#fff',
+                  borderRadius: '8px',
+                  boxShadow: '0 1px 4px rgba(80,89,111,0.06)',
+                  border: '1px solid #ededed',
+                  width: '100%',
+                  maxWidth: '300px',
+                  margin: '0 auto',
+                }}>
+                  <div style={{ padding: '8px 12px 6px 12px' }}>
+                    <div style={{
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      color: '#222',
+                      marginBottom: '4px'
+                    }}>
+                      Timeline
+                    </div>
+                    <div style={{ width: '100%', marginBottom: '6px' }}>
+                      <div style={{
+                        height: '16px',
+                        borderRadius: '8px',
+                        background: '#e4e6ea',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        width: '100%',
+                      }}>
+                        <div style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          height: '100%',
+                          width: '100%',
+                          background: `linear-gradient(to right, #E0E0E0 ${progressPercentage}%, ${getProgressColor(daysRemaining)} ${progressPercentage}%)`,
+                          borderRadius: '8px',
+                          transition: 'all 0.3s',
+                          zIndex: 1,
+                        }} />
+                      </div>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '0.75rem',
+                      margin: '0 2px'
+                    }}>
+                      <span style={{ color: '#374151', fontWeight: '400' }}>{daysCompleted} days completed</span>
+                      <span style={{ color: '#374151', fontWeight: '400' }}>{daysRemaining} days remaining</span>
+                    </div>
                   </div>
                 </div>
-                <div className="col-6">
-                  <div className="text-center ps-2">
-                    <span 
-                      style={{ 
-                        color: '#6B7280',
-                        fontSize: '0.7rem',
-                        fontWeight: '400'
-                      }}
-                    >
-                      {daysRemaining} days remaining
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
