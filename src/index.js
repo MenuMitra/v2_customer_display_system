@@ -5,6 +5,7 @@ import './assets/css/demo.css'
 import './assets/css/core.css'
 import App from './App';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import QueryProvider from './components/QueryProvider';
 
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
@@ -13,10 +14,10 @@ import { BrowserRouter } from 'react-router-dom';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
       <BrowserRouter>
-
-        <App />
+        <QueryProvider>
+          <App />
+        </QueryProvider>
       </BrowserRouter>
-  
 );
 
 // If you want to start measuring performance in your app, pass a function
