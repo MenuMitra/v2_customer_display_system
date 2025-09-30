@@ -32,6 +32,35 @@ export const authService = {
     }
   },
 
+  // Resend OTP (same endpoint as sendOTP for this backend)
+  resendOTP: async (mobileNumber) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/v2/common/login`,
+        { mobile: mobileNumber, app_type: "cds" },
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      return {
+        success: true,
+        role: response.data.role,
+        message: response.data.detail,
+        app_type: "cds",
+      };
+    } catch (error) {
+      console.error("OTP Resend Error:", error);
+      let errDetail = error.response?.data?.detail;
+      return {
+        success: false,
+        error:
+          typeof errDetail === "string"
+            ? errDetail
+            : JSON.stringify(errDetail || "Failed to resend OTP"),
+      };
+    }
+  },
+
   // Verify OTP
   verifyOTP: async (mobileNumber, otp) => {
     // Function to generate a random alphanumeric string of specified length
@@ -57,7 +86,7 @@ export const authService = {
           device_id: deviceId,
           device_model: "Laptop 122",
           fcm_token: fcmToken,
-          app_type: "pos",
+          app_type: "cds",
         },
         {
           headers: { "Content-Type": "application/json" },

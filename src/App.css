@@ -6,6 +6,13 @@
   border-top: 1px solid #e5e7eb;
 }
 
+/* Outlet list hover effect */
+.outlet-list-items:hover {
+  box-shadow: 0 4px 16px rgba(13,110,253,0.18);
+  border-color: #0d6efd;
+  background: #fff; /* highlight on hover */
+}
+
 /* Brand Row */
 .cds-footer-brand {
   display: inline-flex;
@@ -93,7 +100,7 @@
   font-size: 1rem;
   padding: 10px;
   width: 100%;
-  max-width: 300px; /* Control input width */
+   /* Control input width */
 }
 
 .btn-primary {
@@ -156,3 +163,28 @@ input[type="text"].text-center {
 .cds-social-btn:hover .ri-instagram-fill { color: #c13584; }
 .cds-social-btn:hover .ri-youtube-fill { color: #cc0000; }
 .cds-social-btn:hover .ri-google-fill { color: #3367d6; }
+
+
+.btn-primary {
+  background-color: #007bff !important; /* Force Bootstrap blue */
+  border-color: #007bff !important;
+}
+
+.btn-outline-primary {
+  color: #007bff !important;
+  border-color: #007bff !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: #007bff !important;
+  color: #fff !important;
+}
+
+
+        .btn-outline-primary:hover {
+          background-color: #dfdede !important;
+          color: #007bff !important;
+        }
+
+
+
