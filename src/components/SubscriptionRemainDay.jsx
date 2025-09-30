@@ -123,10 +123,21 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
     );
   }
 
-  const daysRemaining = calculateDaysRemaining(subscriptionData.end_date);
   const totalDays = calculateTotalDays(subscriptionData.start_date, subscriptionData.end_date);
-  const daysCompleted = Math.max(0, totalDays - daysRemaining);
-  const progressPercentage = (daysCompleted / totalDays) * 100;
+  const daysRemainingByDate = calculateDaysRemaining(subscriptionData.end_date);
+
+  // Prefer API-provided numeric status as days completed when available
+  const rawStatus = subscriptionData && subscriptionData.status;
+  let daysCompleted = Math.max(0, totalDays - daysRemainingByDate);
+  if (typeof rawStatus === 'number' && !Number.isNaN(rawStatus)) {
+    daysCompleted = rawStatus;
+  } else if (typeof rawStatus === 'string' && rawStatus.trim() !== '' && !Number.isNaN(Number(rawStatus))) {
+    daysCompleted = Number(rawStatus);
+  }
+  // Clamp within [0, totalDays]
+  daysCompleted = Math.min(Math.max(0, daysCompleted), totalDays);
+  const daysRemaining = Math.max(0, totalDays - daysCompleted);
+  const progressPercentage = totalDays > 0 ? (daysCompleted / totalDays) * 100 : 0;
 
   return (
     <div className="container-fluid py-1" style={{ backgroundColor: '#f8f9fa' }}>
@@ -180,7 +191,7 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
                       fontSize: '0.75rem',
                       margin: '0 2px'
                     }}>
-                      <span style={{ color: '#374151', fontWeight: '400' }}>{daysCompleted} days completed</span>
+                      <span style={{ color: '#374151', fontWeight: '400' }}>{daysCompleted} {daysCompleted === 1 ? 'day' : 'days'} completed</span>
                       <span style={{ color: '#374151', fontWeight: '400' }}>{daysRemaining} days remaining</span>
                     </div>
                   </div>
