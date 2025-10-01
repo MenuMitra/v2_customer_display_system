@@ -1,30 +1,5 @@
 import axios from "axios";
-import { handleSessionExpired, isSessionExpiredError } from "../utils/sessionUtils";
-
-const BASE_URL = "https://men4u.xyz";
-
-// Set up axios interceptor for handling 401 errors globally
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (isSessionExpiredError(error)) {
-      try {
-        const url = error?.config?.url || "";
-        const isAuthEndpoint =
-          url.includes("/v2/common/login") || url.includes("/v2/common/verify_otp");
-        const hasAuthData = !!localStorage.getItem("authData");
-
-        // Only redirect if user is already authenticated and it's not an auth endpoint
-        if (!isAuthEndpoint && hasAuthData) {
-          handleSessionExpired();
-        }
-      } catch {
-        // Fail-safe: if parsing fails, do not redirect on auth endpoints
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+const BASE_URL = "https://ghanish.in";
 
 export const authService = {
   // Send OTP
