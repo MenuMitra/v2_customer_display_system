@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { handleApiError } from '../utils/sessionUtils';
 import { useNavigate } from 'react-router-dom';
+import { API_URLS } from '../config/apiConfig';
 
 const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
   const [subscriptionData, setSubscriptionData] = useState(null);
@@ -33,7 +34,7 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
       };
       
       const response = await axios.post(
-        "https://men4u.xyz/v2/common/cds_kds_order_listview",
+        API_URLS.CDS_KDS_ORDER_LISTVIEW,
         requestPayload,
         {
           headers: {
@@ -178,7 +179,7 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
                           left: 0,
                           height: '100%',
                           width: '100%',
-                          background: `linear-gradient(to right, #E0E0E0 ${progressPercentage}%, ${getProgressColor(daysRemaining)} ${progressPercentage}%)`,
+                          background: `linear-gradient(to right, ${getProgressColor(daysRemaining)} ${100 - progressPercentage}%, #E0E0E0 ${100 - progressPercentage}%)`,
                           borderRadius: '8px',
                           transition: 'all 0.3s',
                           zIndex: 1,

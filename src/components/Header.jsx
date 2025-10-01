@@ -6,6 +6,7 @@ import OutletDropdown from "./OutletDropdown";
 import foodIcon from "../assets/food_icon.jpg";
 import { handleApiError } from "../utils/sessionUtils";
 import SubscriptionRemainDay from "./SubscriptionRemainDay";
+import { API_URLS } from "../config/apiConfig";
 
 function Header({ outletName, onRefresh }) {
   const location = useLocation();
@@ -73,7 +74,7 @@ function Header({ outletName, onRefresh }) {
       const ownerId = parsed ? (parsed.user_id || parsed.owner_id || null) : null;
       if (!accessToken || !ownerId) return;
 
-      fetch("https://men4u.xyz/v2/common/get_outlet_list", {
+      fetch(API_URLS.GET_OUTLET_LIST, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -107,7 +108,7 @@ function Header({ outletName, onRefresh }) {
         app_source: "admin",
       };
       const response = await axios.post(
-        "https://men4u.xyz/v2/common/cds_kds_order_listview",
+        API_URLS.CDS_KDS_ORDER_LISTVIEW,
         requestPayload,
         {
           headers: {
@@ -273,7 +274,7 @@ function Header({ outletName, onRefresh }) {
         device_token:
           "Entjx4wL350fdkAPvRs2YHKeBgImyElMnk5USx1QYz5UbWGooIt16BLTqGMsCdfzQPn9SKg3YtkQ94KHHqk.cYjkEmN.8nvp-Qyr",
       };
-      const response = await fetch("https://men4u.xyz/common_api/logout", {
+      const response = await fetch(API_URLS.LOGOUT, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { handleSessionExpired } from "../utils/sessionUtils";
+import { API_URLS } from "../config/apiConfig";
 
 const OutletSelectorDropdown = ({ onSelect }) => {
   const [outlets, setOutlets] = useState([]);
@@ -23,7 +24,7 @@ const OutletSelectorDropdown = ({ onSelect }) => {
     })();
 
     setLoading(true);
-    fetch("https://menultra.com/api/common/partner/outletlist", {
+    fetch(API_URLS.PARTNER_OUTLET_LIST, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
