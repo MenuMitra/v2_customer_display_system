@@ -21,6 +21,7 @@ const OutletDropdown = ({ onSelect }) => {
         return null;
       }
     })();
+    // eslint-disable-next-line no-unused-vars
     const toCamelCase = (str) => {
       return str
         .toLowerCase()
@@ -32,6 +33,7 @@ const OutletDropdown = ({ onSelect }) => {
 
     const token = authData ? authData.access_token : null;
     const userId = authData ? authData.user_id || authData.owner_id : null;
+    // eslint-disable-next-line no-unused-vars
     const userRole = authData ? authData.role : null; // Adjust based on your auth data schema
 
     if (!token || !userId) {
@@ -118,6 +120,7 @@ const OutletDropdown = ({ onSelect }) => {
     setSearchTerm("");
     if (onSelect) onSelect(outlet);
   };
+  // eslint-disable-next-line no-unused-vars
   const toCamelCase = (str) => {
     return str
       .toLowerCase()

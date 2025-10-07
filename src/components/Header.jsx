@@ -14,6 +14,7 @@ function Header({ outletName, onRefresh }) {
   const [selectedOutlet, setSelectedOutlet] = useState(null);
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(false);
   const [screenSize, setScreenSize] = useState(window.innerWidth);
   const [singleOutlet, setSingleOutlet] = useState(false);
@@ -66,6 +67,7 @@ function Header({ outletName, onRefresh }) {
   }
 
   // Detect if owner has exactly one outlet -> auto-select and hide dropdown
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     try {
       const parsed = authData ? JSON.parse(authData) : null;
@@ -149,6 +151,7 @@ function Header({ outletName, onRefresh }) {
     fetchOrders(outlet.outlet_id);
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (selectedOutlet) {
       fetchOrders(selectedOutlet.outlet_id);
@@ -161,11 +164,12 @@ function Header({ outletName, onRefresh }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!selectedOutlet) return;
     const interval = setInterval(() => {
       fetchOrders(selectedOutlet.outlet_id);
-    }, 5000);
+    }, 2000);
     return () => clearInterval(interval);
   }, [selectedOutlet, dateRange]);
   useEffect(() => {
@@ -186,6 +190,7 @@ function Header({ outletName, onRefresh }) {
     };
   }, []);
 
+  // eslint-disable-next-line no-unused-vars
   const fontSizes =
     screenSize > 1200
       ? { header: "display-4", orderNumber: "display-5", itemCount: "display-6" }

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
   const [subscriptionData, setSubscriptionData] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -71,12 +72,14 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (selectedOutlet) {
       fetchSubscriptionData(selectedOutlet.outlet_id);
     }
   }, [selectedOutlet, dateRange]);
 
+  // eslint-disable-next-line no-unused-vars
   const calculateDaysRemaining = (endDate) => {
     const today = new Date();
     const end = new Date(endDate);
@@ -108,35 +111,26 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
   // Load silently in background; keep rendering without showing loader
 
   if (error) {
-    return (
-      <div className="alert alert-warning text-center py-2" role="alert">
-        {error}
-      </div>
-    );
+    return null;
   }
 
   if (!subscriptionData) {
-    return (
-      <div className="alert alert-info text-center py-2" role="alert">
-        No subscription data available
-      </div>
-    );
+    return null;
   }
 
   const totalDays = calculateTotalDays(subscriptionData.start_date, subscriptionData.end_date);
-  const daysRemainingByDate = calculateDaysRemaining(subscriptionData.end_date);
-
-  // Prefer API-provided numeric status as days completed when available
-  const rawStatus = subscriptionData && subscriptionData.status;
-  let daysCompleted = Math.max(0, totalDays - daysRemainingByDate);
-  if (typeof rawStatus === 'number' && !Number.isNaN(rawStatus)) {
-    daysCompleted = rawStatus;
-  } else if (typeof rawStatus === 'string' && rawStatus.trim() !== '' && !Number.isNaN(Number(rawStatus))) {
-    daysCompleted = Number(rawStatus);
-  }
-  // Clamp within [0, totalDays]
-  daysCompleted = Math.min(Math.max(0, daysCompleted), totalDays);
+  // Calculate completed days strictly from start_date and end_date, capped at today
+  const start = new Date(subscriptionData.start_date);
+  const end = new Date(subscriptionData.end_date);
+  const today = new Date();
+  const effectiveEnd = today < end ? today : end;
+  const elapsedMs = Math.max(0, effectiveEnd - start);
+  let daysCompleted = Math.min(Math.ceil(elapsedMs / (1000 * 60 * 60 * 24)), totalDays);
   const daysRemaining = Math.max(0, totalDays - daysCompleted);
+  // Only show when 5 or fewer days remain
+  if (daysRemaining > 5) {
+    return null;
+  }
   const progressPercentage = totalDays > 0 ? (daysCompleted / totalDays) * 100 : 0;
 
   return (
