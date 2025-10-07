@@ -6,6 +6,8 @@ import Footer from "../components/Footer";
 
 function Login() {
   const [mobileNumber, setMobileNumber] = useState("");
+  const [mobileValidationMsg, setMobileValidationMsg] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(false);
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otpValues, setOtpValues] = useState(["", "", "", ""]);
@@ -231,7 +233,15 @@ function Login() {
                 name="mobile"
                 placeholder="Enter your mobile number"
                 value={mobileNumber}
-                onChange={e => setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                onChange={e => {
+                  const sanitized = e.target.value.replace(/\D/g, "").slice(0, 10);
+                  if (sanitized.length === 1 && sanitized[0] < '6') {
+                    setMobileValidationMsg("Mobile number must start with 6-9");
+                    return;
+                  }
+                  if (mobileValidationMsg) setMobileValidationMsg("");
+                  setMobileNumber(sanitized);
+                }}
                 autoFocus={!showOtpInput}
                 disabled={showOtpInput}
                 style={{
@@ -246,6 +256,11 @@ function Login() {
                   transition: "background 0.2s"
                 }}
               />
+              {mobileValidationMsg && (
+                <div style={{ color: '#dc3545', fontSize: '0.95rem', marginTop: '-8px', marginBottom: '8px' }}>
+                  {mobileValidationMsg}
+                </div>
+              )}
               <button
                 className="btn btn-primary w-100"
                 type="submit"
