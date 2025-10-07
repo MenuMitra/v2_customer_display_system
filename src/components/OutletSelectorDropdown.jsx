@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { handleSessionExpired } from "../utils/sessionUtils";
-import { API_URLS } from "../config/apiConfig";
 
 const OutletSelectorDropdown = ({ onSelect }) => {
   const [outlets, setOutlets] = useState([]);

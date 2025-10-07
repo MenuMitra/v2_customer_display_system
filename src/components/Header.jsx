@@ -6,7 +6,6 @@ import OutletDropdown from "./OutletDropdown";
 import foodIcon from "../assets/food_icon.jpg";
 import { handleApiError } from "../utils/sessionUtils";
 import SubscriptionRemainDay from "./SubscriptionRemainDay";
-import { API_URLS } from "../config/apiConfig";
 
 function Header({ outletName, onRefresh }) {
   const location = useLocation();
