@@ -15,6 +15,7 @@ function Login() {
   const [timer, setTimer] = useState(0); // seconds left to allow resend
   const [otpError, setOtpError] = useState(false);
   const [activeOtpIndex, setActiveOtpIndex] = useState(null);
+  const [autoSubmitted, setAutoSubmitted] = useState(false);
   const navigate = useNavigate();
   const otpRefs = [useRef(), useRef(), useRef(), useRef()];
 
@@ -49,6 +50,20 @@ function Login() {
     }, 1000);
     return () => clearInterval(id);
   }, [showOtpInput, timer]);
+  
+
+  // Auto submit when all 4 OTP digits are entered
+  useEffect(() => {
+    if (!showOtpInput) return;
+    const allFilled = otpValues.every((d) => d && d.length === 1);
+    if (allFilled && !autoSubmitted) {
+      setAutoSubmitted(true);
+      handleVerifyOTP({ preventDefault: () => {} });
+    }
+    if (!allFilled && autoSubmitted) {
+      setAutoSubmitted(false);
+    }
+  }, [showOtpInput, otpValues, autoSubmitted]);
 
   const handleOtpChange = (index, value) => {
     if (value.length > 1) value = value[0];
