@@ -32,7 +32,7 @@ export const authService = {
     try {
       const response = await axios.post(
         `${BASE_URL}/v2/common/login`,
-        { mobile: mobileNumber, app_type: "cds" },
+        { mobile: mobileNumber, version: "2.1.1", app_type: "cds" },
         {
           headers: { "Content-Type": "application/json" },
         }
@@ -62,7 +62,7 @@ export const authService = {
     try {
       const response = await axios.post(
         `${BASE_URL}/v2/common/login`,
-        { mobile: mobileNumber, app_type: "cds" },
+        { mobile: mobileNumber, version: "2.1.1", app_type: "cds" },
         {
           headers: { "Content-Type": "application/json" },
         }
