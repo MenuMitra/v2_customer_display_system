@@ -307,7 +307,7 @@ function Header({ outletName, onRefresh }) {
   return (
     <>
       {/* Testing Banner */}
-      {/* <div
+      <div
         style={{
           width: "100%",
           backgroundColor: "#b22222",
@@ -323,7 +323,7 @@ function Header({ outletName, onRefresh }) {
         }}
       >
         Testing Environment
-      </div> */}
+      </div>
 
       <header className="bg-white shadow-sm" style={{ marginTop: "25px" }}>
         <nav className="navbar navbar-expand-lg navbar-dark py-2">
