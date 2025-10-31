@@ -402,13 +402,13 @@ function Login() {
         <a href="https://menumitra.com/" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
           Home
         </a>
-        <a href="https://menumitra.com/book_demo" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
+        <a href="https://menumitra.com/book-demo" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
           Book a demo
         </a>
-        <a href="https://menumitra.com/about_us" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
+        <a href="https://menumitra.com/contact" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
           Contact
         </a>
-        <a href="https://menumitra.com/support" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
+        <a href="https://menumitra.com/about" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
           Support
         </a>
       </nav>

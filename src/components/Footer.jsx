@@ -17,6 +17,26 @@ const Footer = () => {
         }}
       >
         <a
+          href="https://www.google.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="cds-social-btn"
+          aria-label="Google"
+          style={{
+            fontSize: "2.4rem",
+            color: "#55a845",
+            background: "#f8f9fa",
+            borderRadius: "50%",
+            width: "50px",
+            height: "50px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <i className="ri-google-fill" />
+        </a>
+        <a
           href="https://www.facebook.com/people/Menu-Mitra/61565082412478/"
           target="_blank"
           rel="noopener noreferrer"
@@ -75,26 +95,6 @@ const Footer = () => {
           }}
         >
           <i className="ri-youtube-fill" />
-        </a>
-        <a
-          href="https://www.google.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="cds-social-btn"
-          aria-label="Google"
-          style={{
-            fontSize: "2.4rem",
-            color: "#55a845",
-            background: "#f8f9fa",
-            borderRadius: "50%",
-            width: "50px",
-            height: "50px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <i className="ri-google-fill" />
         </a>
       </div>
       <div

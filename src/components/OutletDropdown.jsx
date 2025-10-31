@@ -215,16 +215,17 @@ const OutletDropdown = ({ onSelect }) => {
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "center",
-                      gap: "1px"
+                      gap: "4px",
+                      overflow: "hidden"
                     }}
                     onMouseEnter={() => setHoveredOutletId(outlet.outlet_id)}
                     onMouseLeave={() => setHoveredOutletId(null)}
                   >
-                    <span style={{ fontWeight: 700 }}>
+                    <span title={`${outlet.name} (${outlet.outlet_code})`} style={{ fontWeight: 700, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
                       {outlet.name} <span style={{ fontSize: "0.95rem", color: "#b0b6bb", fontWeight: 400 }}>{outlet.outlet_code}</span>
                     </span>
-                    <span style={{ fontSize: "0.92rem", color: "#6e7479" }}>{outlet.address}</span>
-                    <span style={{ fontSize: "0.85rem", color: "#2e3133" }}>{outlet.owner_name}</span>
+                    <span title={outlet.address} style={{ fontSize: "0.92rem", color: "#6e7479", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis", wordBreak: "break-word" }}>{outlet.address}</span>
+                    <span title={outlet.owner_name} style={{ fontSize: "0.85rem", color: "#2e3133", display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>{outlet.owner_name}</span>
                   </button>
                 </li>
               ))}
