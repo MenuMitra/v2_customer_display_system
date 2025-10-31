@@ -95,7 +95,7 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
   const endDate = new Date(subscriptionData.end_date);
   const now = new Date();
   const remainingDaysRaw = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
-  const remainingDays = Math.max(0, remainingDaysRaw -56);
+  const remainingDays = Math.max(0, remainingDaysRaw);
   const completedDays = Math.max(0, totalDays - remainingDays);
   const percentage = totalDays > 0 ? Math.min(100, Math.max(0, (completedDays / totalDays) * 100)) : 0;
 
