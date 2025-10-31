@@ -49,18 +49,7 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
       if (data && data.subscription_details) {
         setSubscriptionData(data.subscription_details);
       } else {
-        // Mock data for testing when subscription_details is not available
-        const mockSubscriptionData = {
-          subscription_id: 22,
-          name: "POS App Basic",
-          price: 1000.0,
-          tenure: "3 months",
-          start_date: "2025-09-25T13:49:35",
-          end_date: "2025-12-25T13:49:35",
-          status: true,
-          subscription_price: 1000.0
-        };
-        setSubscriptionData(mockSubscriptionData);
+        setSubscriptionData(null);
       }
     } catch (err) {
       if (handleApiError(err, navigate)) {
@@ -80,29 +69,12 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
     }
   }, [selectedOutlet, dateRange]);
 
-  // eslint-disable-next-line no-unused-vars
-  const calculateDaysRemaining = (endDate) => {
-    const today = new Date();
-    const end = new Date(endDate);
-    const diffTime = end - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(0, diffDays);
-  };
-
   const calculateTotalDays = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
     const diffTime = end - start;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(1, diffDays);
-  };
-
-  const getProgressColor = (daysRemaining) => {
-    if (daysRemaining > 30) return '#10B981'; // green
-    if (daysRemaining < 5) return '#ef4444'; // red
-    if (daysRemaining < 15) return '#f59e0b'; // orange
-    if (daysRemaining < 30) return '#eab308'; // yellow
-    return '#10B981';
+    return Math.max(0, diffDays);
   };
 
   if (!selectedOutlet) {
@@ -120,78 +92,81 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
   }
 
   const totalDays = calculateTotalDays(subscriptionData.start_date, subscriptionData.end_date);
-  // Calculate completed days strictly from start_date and end_date, capped at today
-  const start = new Date(subscriptionData.start_date);
-  const end = new Date(subscriptionData.end_date);
-  const today = new Date();
-  const effectiveEnd = today < end ? today : end;
-  const elapsedMs = Math.max(0, effectiveEnd - start);
-  let daysCompleted = Math.min(Math.ceil(elapsedMs / (1000 * 60 * 60 * 24)), totalDays);
-  const daysRemaining = Math.max(0, totalDays - daysCompleted);
-  // Only show when 5 or fewer days remain
-  if (daysRemaining > 5) {
+  const endDate = new Date(subscriptionData.end_date);
+  const now = new Date();
+  const remainingDaysRaw = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+  const remainingDays = Math.max(0, remainingDaysRaw -56);
+  const completedDays = Math.max(0, totalDays - remainingDays);
+  const percentage = totalDays > 0 ? Math.min(100, Math.max(0, (completedDays / totalDays) * 100)) : 0;
+
+  let color = '#177841';
+  if (remainingDays <= 5) {
+    color = '#d10606';
+  } else if (remainingDays <= 15) {
+    color = '#F59E0B';
+  }
+
+  // Only show timeline when subscription remaining days are 5 or fewer
+  if (remainingDays > 5) {
     return null;
   }
-  const progressPercentage = totalDays > 0 ? (daysCompleted / totalDays) * 100 : 0;
 
   return (
-    <div className="container-fluid py-1" style={{ backgroundColor: '#f8f9fa' }}>
-      <div className="row justify-content-center">
-        <div className="col-12 col-md-5 col-lg-4">
-          {/* KDS-style compact card with centered progress */}
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '6px' }}>
-                <div style={{
-                  background: '#fff',
-                  borderRadius: '8px',
-                  boxShadow: '0 1px 4px rgba(80,89,111,0.06)',
-                  border: '1px solid #ededed',
-                  width: '100%',
-                  maxWidth: '300px',
-                  margin: '0 auto',
-                }}>
-                  <div style={{ padding: '8px 12px 6px 12px' }}>
-                    <div style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      color: '#222',
-                      marginBottom: '4px'
-                    }}>
-                      Timeline
-                    </div>
-                    <div style={{ width: '100%', marginBottom: '6px' }}>
-                      <div style={{
-                        height: '16px',
-                        borderRadius: '8px',
-                        background: '#e4e6ea',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        width: '100%',
-                      }}>
-                        <div style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          height: '100%',
-                          width: '100%',
-                          background: `linear-gradient(to right, ${getProgressColor(daysRemaining)} ${100 - progressPercentage}%, #E0E0E0 ${100 - progressPercentage}%)`,
-                          borderRadius: '8px',
-                          transition: 'all 0.3s',
-                          zIndex: 1,
-                        }} />
-                      </div>
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '0.75rem',
-                      margin: '0 2px'
-                    }}>
-                      <span style={{ color: '#374151', fontWeight: '400' }}>{daysCompleted} {daysCompleted === 1 ? 'day' : 'days'} completed</span>
-                      <span style={{ color: '#374151', fontWeight: '400' }}>{daysRemaining} days remaining</span>
-                    </div>
-                  </div>
-                </div>
+    <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '10px' }}>
+      <div style={{
+        background: '#fff',
+        borderRadius: '8px',
+        boxShadow: '0 1px 4px rgba(80,89,111,0.06)',
+        border: '1px solid #ededed',
+        width: '100%',
+        maxWidth: '360px',
+        margin: '0 auto',
+      }}>
+        <div style={{ padding: '10px 12px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '8px'
+          }}>
+            <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#222' }}>Subscription Timeline</div>
+            
           </div>
+
+          <div style={{ width: '100%', marginBottom: '6px' }}>
+            <div style={{
+              height: '14px',
+              borderRadius: '8px',
+              background: '#e4e6ea',
+              position: 'relative',
+              overflow: 'hidden',
+              width: '100%',
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                height: '100%',
+                width: `${percentage}%`,
+                background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
+                borderRadius: '8px',
+                transition: 'width 0.3s ease',
+                zIndex: 1,
+              }} />
+            </div>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: '0.75rem',
+            margin: '0 2px',
+            color: '#374151'
+          }}>
+            <span style={{ fontWeight: 500 }}>{completedDays} days completed</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color }}>{remainingDays} days remaining</span>
+          </div>
+
         </div>
       </div>
     </div>
