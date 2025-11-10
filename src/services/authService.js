@@ -1,7 +1,7 @@
 import axios from "axios";
 import { handleSessionExpired, isSessionExpiredError } from "../utils/sessionUtils";
 
-const BASE_URL = "https://men4u.xyz";
+const BASE_URL = "https://menu4.xyz";
 
 // Set up axios interceptor for handling 401 errors globally
 axios.interceptors.response.use(

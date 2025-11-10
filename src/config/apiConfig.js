@@ -3,7 +3,7 @@
 
 export const API_BASE_URLS = {
   // Main API base URL
-  MEN4U_BASE: 'https://men4u.xyz',
+  MEN4U_BASE: 'https://menu4.xyz',
   
   // Alternative API base URL  
   MENULTRA_BASE: 'https://menultra.com'
