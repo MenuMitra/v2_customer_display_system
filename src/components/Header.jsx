@@ -19,6 +19,11 @@ function Header({ outletName, onRefresh }) {
   const [screenSize, setScreenSize] = useState(window.innerWidth);
   const [singleOutlet, setSingleOutlet] = useState(false);
   const [singleOutletName, setSingleOutletName] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isTodayHovered, setIsTodayHovered] = useState(false);
+  const [isAllHovered, setIsAllHovered] = useState(false);
+  const [isFullscreenHovered, setIsFullscreenHovered] = useState(false);
+  const [isLogoutHovered, setIsLogoutHovered] = useState(false);
 
   const toTitleCase = (name) => {
     if (!name || typeof name !== "string") return "";
@@ -123,13 +128,53 @@ function Header({ outletName, onRefresh }) {
         setOrders([]);
         setError("No data received");
       } else {
-        const placedOrders =
-          (data.placed_orders || []).map((order) => ({ ...order, status: "placed" })) || [];
-        const ongoingOrders =
-          (data.cooking_orders || []).map((order) => ({ ...order, status: "ongoing" })) || [];
-        const completedOrders =
-          (data.paid_orders || []).map((order) => ({ ...order, status: "completed" })) || [];
-        const allOrders = [...placedOrders, ...ongoingOrders, ...completedOrders];
+        const normalizedBuckets = {
+          placed: [],
+          ongoing: [],
+          completed: [],
+        };
+
+        const toLower = (value) => (typeof value === "string" ? value.toLowerCase() : value);
+
+        const pushToBucket = (order, statusKey, allowedStatuses, fallbackToAllItems = false) => {
+          const menuItems = Array.isArray(order.menu_details) ? order.menu_details : [];
+          const filteredItems = menuItems.filter((item) =>
+            allowedStatuses.includes(toLower(item.menu_status))
+          );
+          const itemsToUse =
+            filteredItems.length > 0
+              ? filteredItems
+              : fallbackToAllItems
+              ? menuItems
+              : [];
+
+          if (!itemsToUse.length) return;
+
+          normalizedBuckets[statusKey].push({
+            ...order,
+            status: statusKey,
+            menu_details: itemsToUse,
+          });
+        };
+
+        (data.placed_orders || []).forEach((order) => {
+          pushToBucket(order, "placed", ["placed"], true);
+        });
+
+        (data.cooking_orders || []).forEach((order) => {
+          pushToBucket(order, "ongoing", ["cooking", "ongoing", "processing"]);
+          pushToBucket(order, "completed", ["served", "ready", "completed"]);
+        });
+
+        (data.paid_orders || []).forEach((order) => {
+          pushToBucket(order, "completed", ["served", "ready", "completed", "paid"], true);
+        });
+
+        const allOrders = [
+          ...normalizedBuckets.placed,
+          ...normalizedBuckets.ongoing,
+          ...normalizedBuckets.completed,
+        ];
         setOrders(allOrders);
       }
     } catch (err) {
@@ -163,6 +208,16 @@ function Header({ outletName, onRefresh }) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (screenSize >= 992 && isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
+  }, [screenSize, isMobileMenuOpen]);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -307,7 +362,7 @@ function Header({ outletName, onRefresh }) {
   return (
     <>
       {/* Testing Banner */}
-      {/* <div
+      <div
         style={{
           width: "100%",
           backgroundColor: "#b22222",
@@ -323,11 +378,11 @@ function Header({ outletName, onRefresh }) {
         }}
       >
         Testing Environment
-      </div> */}
+      </div>
 
       <header className="bg-white shadow-sm" style={{ marginTop: "25px" }}>
         <nav className="navbar navbar-expand-lg navbar-dark py-2">
-          <div className="container-fluid px-5">
+          <div className="container-fluid px-3 px-md-4 px-lg-5" style={{ position: "relative" }}>
             {/* Brand/Logo with Outlet Dropdown */}
             <div className="navbar-brand d-flex align-items-center gap-2">
               <img
@@ -335,7 +390,8 @@ function Header({ outletName, onRefresh }) {
                 alt="Menumitra Logo"
                 style={{ height: "35px", width: "35px", objectFit: "contain" }}
               />
-              <span className="fs-4 fw-bold text-dark">Menumitra</span>
+              <span className="fs-4 fw-bold text-dark d-none d-lg-inline">Menumitra</span>
+              <span className="fs-4 fw-bold text-dark d-inline d-lg-none">MM</span>
               <div>
                 {singleOutlet ? (
                   <span style={{ fontSize: "1.3rem", color: "#9aa0a6", fontWeight: 600 }}>
@@ -346,8 +402,24 @@ function Header({ outletName, onRefresh }) {
                 )}
               </div>
             </div>
+            <button
+              className={`navbar-toggler border-0 d-lg-none ${isMobileMenuOpen ? "" : "collapsed"}`}
+              type="button"
+              aria-label="Toggle navigation"
+              aria-expanded={isMobileMenuOpen}
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              style={{
+                position: "absolute",
+                top: "12px",
+                right: "20px",
+                padding: "6px",
+              }}
+            >
+              <i className="fa-solid fa-bars text-dark fs-3"></i>
+            </button>
             {/* Center Title */}
             <div
+              className="d-none d-lg-block"
               style={{
                 position: "absolute",
                 top: "50%",
@@ -363,26 +435,30 @@ function Header({ outletName, onRefresh }) {
             </div>
 
             {/* Navigation Links */}
-            <ul className="navbar-nav ms-auto align-items-center" style={{ gap: "8px" }}>
-              <li className="nav-item d-flex align-items-center flex-row">
+            <div className={`collapse navbar-collapse justify-content-lg-end ${isMobileMenuOpen ? "show" : ""}`}>
+              <ul
+                className="navbar-nav ms-auto align-items-start align-items-lg-center flex-column flex-lg-row"
+                style={{ gap: "8px" }}
+              >
+                <li className="nav-item d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center w-100 gap-3 gap-lg-2">
                 {/* Toggle for Today/All */}
                 <div
-                  className="btn-group"
+                  className="btn-group w-100 w-lg-auto"
                   role="group"
                   style={{
                     border: "1.2px solid #2376dcff",
                     borderRadius: "8px",
                     overflow: "hidden",
                     height: "40px",
-                    width: "112px",
                     background: "#fff",
                   }}
                 >
                   <button
                     type="button"
-                    className="btn"
+                    className="btn flex-fill flex-lg-grow-0"
                     style={{
-                      backgroundColor: dateRange === "today" ? "#0081ff" : "#ffffffff",
+                      backgroundColor:
+                        dateRange === "today" ? "#0081ff" : isTodayHovered ? "#f0f0f0" : "#fff",
                       color: dateRange === "today" ? "#fff" : "#0081ff",
                       border: "none",
                       borderRadius: "8px 0 0 8px",
@@ -397,14 +473,19 @@ function Header({ outletName, onRefresh }) {
                       textAlign: "center",
                     }}
                     onClick={() => setDateRange("today")}
+                    onMouseEnter={() => {
+                      if (dateRange !== "today") setIsTodayHovered(true);
+                    }}
+                    onMouseLeave={() => setIsTodayHovered(false)}
                   >
                     Today
                   </button>
                   <button
                     type="button"
-                    className="btn"
+                    className="btn flex-fill flex-lg-grow-0"
                     style={{
-                      backgroundColor: dateRange === "all" ? "#0081ff" : "#fff",
+                      backgroundColor:
+                        dateRange === "all" ? "#0081ff" : isAllHovered ? "#f0f0f0" : "#fff",
                       color: dateRange === "all" ? "#fff" : "#0081ff",
                       border: "none",
                       borderRadius: "0 8px 8px 0",
@@ -420,84 +501,95 @@ function Header({ outletName, onRefresh }) {
                       borderLeft: "1px solid #babfc5",
                     }}
                     onClick={() => setDateRange("all")}
+                    onMouseEnter={() => {
+                      if (dateRange !== "all") setIsAllHovered(true);
+                    }}
+                    onMouseLeave={() => setIsAllHovered(false)}
                   >
                     All
                   </button>
                 </div>
-                {/* Refresh Icon */}
-                <button
-                  className="btn btn-outline-secondary d-flex align-items-center justify-content-center"
-                  title="Refresh"
-                  onClick={() => {
-                    if (selectedOutlet) {
-                      fetchOrders(selectedOutlet.outlet_id);
-                    }
-                  }}
-                  style={{
-                    border: "2px solid #babfc5",
-                    borderRadius: "8px",
-                    width: "40px",
-                    height: "40px",
-                    marginLeft: "8px",
-                    background: "#fff",
-                    color: "#000",
-                    transition: "none",
-                  }}
-                >
-                  <i className="fa-solid fa-rotate" />
-                </button>
-
-                {/* Fullscreen Icon */}
-                <button
-                  className="btn d-flex align-items-center justify-content-center"
-                  title="Fullscreen"
-                  onClick={() => {
-                    if (location.pathname === "/orders") {
-                      const container = document.querySelector(".container-fluid.p-0");
-                      if (container && container.requestFullscreen) {
-                        container.requestFullscreen();
-                      } else if (container && container.webkitRequestFullscreen) {
-                        container.webkitRequestFullscreen();
-                      } else if (container && container.mozRequestFullScreen) {
-                        container.mozRequestFullScreen();
-                      } else if (container && container.msRequestFullscreen) {
-                        container.msRequestFullscreen();
+                {/* Action Buttons */}
+                <div className="d-flex w-100 w-lg-auto justify-content-between justify-content-lg-start gap-3 gap-lg-2 mt-1 mt-lg-0 align-items-center">
+                  {/* Refresh Icon */}
+                  <button
+                    className="btn btn-outline-secondary d-flex align-items-center justify-content-center flex-shrink-0"
+                    title="Refresh"
+                    onClick={() => {
+                      if (selectedOutlet) {
+                        fetchOrders(selectedOutlet.outlet_id);
                       }
-                    } else {
-                      navigate("/orders");
-                    }
-                  }}
-                  style={{
-                    border: "2px solid #babfc5",
-                    borderRadius: "8px",
-                    width: "40px",
-                    height: "40px",
-                    marginLeft: "8px",
-                    background: "#fff",
-                    color: "grey",
-                  }}
-                >
-                  <i className="bx bx-fullscreen"></i>
-                </button>
-                {/* Logout Icon */}
-                <button
-                  className="btn d-flex align-items-center justify-content-center"
-                  title="Logout"
-                  onClick={() => setShowLogoutConfirm(true)}
-                  style={{
-                    border: "2px solid red",
-                    borderRadius: "8px",
-                    width: "40px",
-                    height: "40px",
-                    marginLeft: "8px",
-                    background: "#fff",
-                    color: "red",
-                  }}
-                >
-                  <i className="fa-solid fa-right-from-bracket"></i>
-                </button>
-              </li>
-            </ul>
+                    }}
+                    style={{
+                      border: "2px solid #babfc5",
+                      borderRadius: "8px",
+                      width: "40px",
+                      height: "40px",
+                      background: "#fff",
+                      color: "#000",
+                      transition: "none",
+                    }}
+                  >
+                    <i className="fa-solid fa-rotate" />
+                  </button>
+
+                  {/* Fullscreen Icon */}
+                  <button
+                    className="btn d-flex align-items-center justify-content-center flex-shrink-0 ms-lg-2"
+                    title="Fullscreen"
+                    onClick={() => {
+                      if (location.pathname === "/orders") {
+                        const container = document.querySelector(".container-fluid.p-0");
+                        if (container && container.requestFullscreen) {
+                          container.requestFullscreen();
+                        } else if (container && container.webkitRequestFullscreen) {
+                          container.webkitRequestFullscreen();
+                        } else if (container && container.mozRequestFullScreen) {
+                          container.mozRequestFullScreen();
+                        } else if (container && container.msRequestFullscreen) {
+                          container.msRequestFullscreen();
+                        }
+                      } else {
+                        navigate("/orders");
+                      }
+                    }}
+                    style={{
+                      border: "2px solid #babfc5",
+                      borderRadius: "8px",
+                      width: "40px",
+                      height: "40px",
+                      background: isFullscreenHovered ? "#f0f0f0" : "#fff",
+                      color: isFullscreenHovered ? "#000" : "grey",
+                      transition: "background-color 0.15s, color 0.15s",
+                    }}
+                    onMouseEnter={() => setIsFullscreenHovered(true)}
+                    onMouseLeave={() => setIsFullscreenHovered(false)}
+                  >
+                    <i className="bx bx-fullscreen"></i>
+                  </button>
+                  {/* Logout Icon */}
+                  <button
+                    className="btn d-flex align-items-center justify-content-center flex-shrink-0 ms-lg-2"
+                    title="Logout"
+                    onClick={() => setShowLogoutConfirm(true)}
+                    style={{
+                      border: "2px solid red",
+                      borderRadius: "8px",
+                      width: "40px",
+                      height: "40px",
+                      background: isLogoutHovered ? "#ffe8e8" : "#fff",
+                      color: "red",
+                      transition: "background-color 0.15s, color 0.15s",
+                    }}
+                    onMouseEnter={() => setIsLogoutHovered(true)}
+                    onMouseLeave={() => setIsLogoutHovered(false)}
+                  >
+                    <i className="fa-solid fa-right-from-bracket"></i>
+                  </button>
+                </div>
+                </li>
+              </ul>
+            </div>
           </div>
         </nav>
       </header>

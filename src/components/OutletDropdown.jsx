@@ -115,6 +115,9 @@ const OutletDropdown = ({ onSelect }) => {
   }, []);
 
   const handleSelect = (outlet) => {
+    if (outlet && outlet.outlet_status === false) {
+      return;
+    }
     setSelected(outlet);
     setShow(false);
     setSearchTerm("");
@@ -199,31 +202,46 @@ const OutletDropdown = ({ onSelect }) => {
                   <button
                     className="w-full text-left"
                     onClick={() => handleSelect(outlet)}
+                    disabled={outlet.outlet_status === false}
+                    aria-disabled={outlet.outlet_status === false}
                     style={{
-                      background: "#fff",
-                      color: "#222",
+                      background: outlet.outlet_status === false ? "#ffecec" : "#fff",
+                      color: outlet.outlet_status === false ? "#a8071a" : "#222",
                       fontWeight: 500,
                       borderRadius: "12px",
-                      border: hoveredOutletId === outlet.outlet_id ? "1.5px solid #0d6efd" : "1.5px solid transparent",
+                      border: outlet.outlet_status === false
+                        ? "1.5px solid #ff4d4f"
+                        : (hoveredOutletId === outlet.outlet_id ? "1.5px solid #0d6efd" : "1.5px solid transparent"),
                       padding: "0 1rem", // horizontal padding to match input
                       minHeight: "6rem", // same min height as search bar
                       width: "100%",
                       textAlign: "left",
-                      boxShadow: hoveredOutletId === outlet.outlet_id ? "0 4px 16px rgba(13,110,253,0.18)" : "0 1px 2px rgba(68, 73, 78, 0.11)",
+                      boxShadow: outlet.outlet_status === false
+                        ? "0 1px 2px rgba(255, 77, 79, 0.25)"
+                        : (hoveredOutletId === outlet.outlet_id ? "0 4px 16px rgba(13,110,253,0.18)" : "0 1px 2px rgba(68, 73, 78, 0.11)"),
                       fontSize: "1.25rem", // same font size as input
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "center",
-                      gap: "1px"
+                      gap: "4px",
+                      overflow: "hidden",
+                      cursor: outlet.outlet_status === false ? "not-allowed" : "pointer",
+                      opacity: outlet.outlet_status === false ? 0.9 : 1
                     }}
                     onMouseEnter={() => setHoveredOutletId(outlet.outlet_id)}
                     onMouseLeave={() => setHoveredOutletId(null)}
                   >
-                    <span style={{ fontWeight: 700 }}>
-                      {outlet.name} <span style={{ fontSize: "0.95rem", color: "#b0b6bb", fontWeight: 400 }}>{outlet.outlet_code}</span>
+                    <span title={`${outlet.name} (${outlet.outlet_code})`} style={{ fontWeight: 700, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+                      {outlet.name}
+                      {outlet.outlet_status === false && (
+                        <span style={{ marginLeft: "8px", fontSize: "0.9rem", color: "#cf1322", fontWeight: 600 }}>
+                          (Inactive)
+                        </span>
+                      )}
+                      <span style={{ fontSize: "0.95rem", color: "#b0b6bb", fontWeight: 400, marginLeft: outlet.outlet_status === false ? "6px" : "4px" }}>{outlet.outlet_code}</span>
                     </span>
-                    <span style={{ fontSize: "0.92rem", color: "#6e7479" }}>{outlet.address}</span>
-                    <span style={{ fontSize: "0.85rem", color: "#2e3133" }}>{outlet.owner_name}</span>
+                    <span title={outlet.address} style={{ fontSize: "0.92rem", color: outlet.outlet_status === false ? "#a8071a" : "#6e7479", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis", wordBreak: "break-word" }}>{outlet.address}</span>
+                    <span title={outlet.owner_name} style={{ fontSize: "0.85rem", color: outlet.outlet_status === false ? "#a8071a" : "#2e3133", display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>{outlet.owner_name}</span>
                   </button>
                 </li>
               ))}

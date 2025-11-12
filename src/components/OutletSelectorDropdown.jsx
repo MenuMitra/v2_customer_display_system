@@ -121,9 +121,19 @@ const OutletSelectorDropdown = ({ onSelect }) => {
                   }`}
                   onClick={() => handleSelect(outlet)}
                 >
-                  <div>{outlet.name} <span className="text-xs text-gray-500">({outlet.outlet_code})</span></div>
-                  <div className="text-xs">{outlet.address}</div>
-                  <div className="text-xs text-gray-700">{outlet.owner_name}</div>
+                  <div title={`${outlet.name} (${outlet.outlet_code})`} style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {outlet.name} <span className="text-xs text-gray-500">({outlet.outlet_code})</span>
+                  </div>
+                  <div
+                    className="text-xs"
+                    title={outlet.address}
+                    style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis", wordBreak: "break-word" }}
+                  >
+                    {outlet.address}
+                  </div>
+                  <div className="text-xs text-gray-700" title={outlet.owner_name} style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {outlet.owner_name}
+                  </div>
                 </button>
               </li>
             ))}
