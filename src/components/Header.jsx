@@ -21,6 +21,10 @@ function Header({ outletName, onRefresh }) {
   const [singleOutlet, setSingleOutlet] = useState(false);
   const [singleOutletName, setSingleOutletName] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isTodayHovered, setIsTodayHovered] = useState(false);
+  const [isAllHovered, setIsAllHovered] = useState(false);
+  const [isFullscreenHovered, setIsFullscreenHovered] = useState(false);
+  const [isLogoutHovered, setIsLogoutHovered] = useState(false);
 
   const toTitleCase = (name) => {
     if (!name || typeof name !== "string") return "";
@@ -453,7 +457,8 @@ function Header({ outletName, onRefresh }) {
                     type="button"
                     className="btn flex-fill flex-lg-grow-0"
                     style={{
-                      backgroundColor: dateRange === "today" ? "#0081ff" : "#ffffffff",
+                      backgroundColor:
+                        dateRange === "today" ? "#0081ff" : isTodayHovered ? "#f0f0f0" : "#fff",
                       color: dateRange === "today" ? "#fff" : "#0081ff",
                       border: "none",
                       borderRadius: "8px 0 0 8px",
@@ -468,6 +473,10 @@ function Header({ outletName, onRefresh }) {
                       textAlign: "center",
                     }}
                     onClick={() => setDateRange("today")}
+                    onMouseEnter={() => {
+                      if (dateRange !== "today") setIsTodayHovered(true);
+                    }}
+                    onMouseLeave={() => setIsTodayHovered(false)}
                   >
                     Today
                   </button>
@@ -475,7 +484,8 @@ function Header({ outletName, onRefresh }) {
                     type="button"
                     className="btn flex-fill flex-lg-grow-0"
                     style={{
-                      backgroundColor: dateRange === "all" ? "#0081ff" : "#fff",
+                      backgroundColor:
+                        dateRange === "all" ? "#0081ff" : isAllHovered ? "#f0f0f0" : "#fff",
                       color: dateRange === "all" ? "#fff" : "#0081ff",
                       border: "none",
                       borderRadius: "0 8px 8px 0",
@@ -491,6 +501,10 @@ function Header({ outletName, onRefresh }) {
                       borderLeft: "1px solid #babfc5",
                     }}
                     onClick={() => setDateRange("all")}
+                    onMouseEnter={() => {
+                      if (dateRange !== "all") setIsAllHovered(true);
+                    }}
+                    onMouseLeave={() => setIsAllHovered(false)}
                   >
                     All
                   </button>
@@ -544,9 +558,12 @@ function Header({ outletName, onRefresh }) {
                       borderRadius: "8px",
                       width: "40px",
                       height: "40px",
-                      background: "#fff",
-                      color: "grey",
+                      background: isFullscreenHovered ? "#f0f0f0" : "#fff",
+                      color: isFullscreenHovered ? "#000" : "grey",
+                      transition: "background-color 0.15s, color 0.15s",
                     }}
+                    onMouseEnter={() => setIsFullscreenHovered(true)}
+                    onMouseLeave={() => setIsFullscreenHovered(false)}
                   >
                     <i className="bx bx-fullscreen"></i>
                   </button>
@@ -560,9 +577,12 @@ function Header({ outletName, onRefresh }) {
                       borderRadius: "8px",
                       width: "40px",
                       height: "40px",
-                      background: "#fff",
+                      background: isLogoutHovered ? "#ffe8e8" : "#fff",
                       color: "red",
+                      transition: "background-color 0.15s, color 0.15s",
                     }}
+                    onMouseEnter={() => setIsLogoutHovered(true)}
+                    onMouseLeave={() => setIsLogoutHovered(false)}
                   >
                     <i className="fa-solid fa-right-from-bracket"></i>
                   </button>
