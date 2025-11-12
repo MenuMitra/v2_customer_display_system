@@ -361,26 +361,7 @@ function Header({ outletName, onRefresh }) {
 
   return (
     <>
-      {/* Testing Banner */}
-      <div
-        style={{
-          width: "100%",
-          backgroundColor: "#b22222",
-          color: "#fff",
-          textAlign: "center",
-          padding: "3px 0",
-          fontSize: "14px",
-          fontWeight: "bold",
-          position: "fixed",
-          top: 0,
-          left: 0,
-          zIndex: 1100,
-        }}
-      >
-        Testing Environment
-      </div>
-
-      <header className="bg-white shadow-sm" style={{ marginTop: "25px" }}>
+      <header className="bg-white shadow-sm">
         <nav className="navbar navbar-expand-lg navbar-dark py-2">
           <div className="container-fluid px-3 px-md-4 px-lg-5" style={{ position: "relative" }}>
             {/* Brand/Logo with Outlet Dropdown */}
