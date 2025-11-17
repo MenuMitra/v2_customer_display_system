@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { handleApiError } from '../utils/sessionUtils';
 import { useNavigate } from 'react-router-dom';
+import { ENV } from '../config/apiConfig';
 
 const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
   const [subscriptionData, setSubscriptionData] = useState(null);
@@ -34,7 +35,7 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
       };
       
       const response = await axios.post(
-        "https://ghanish.in/v2/common/cds_kds_order_listview",
+        `${ENV.V2_COMMON_BASE}/cds_kds_order_listview`,
         requestPayload,
         {
           headers: {

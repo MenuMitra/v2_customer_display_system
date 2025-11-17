@@ -1,35 +1,38 @@
-// API Configuration
-// Centralized base URLs for all API endpoints
+// Centralized environment configuration for API and WebSocket endpoints
 
-export const API_BASE_URLS = {
-  // Main API base URL
-  MEN4U_BASE: 'https://menu4.xyz',
-  
-  // Alternative API base URL  
-  MENULTRA_BASE: 'https://menultra.com'
+// SINGLE SWITCH: change this to 'production' | 'testing' | 'development'
+const CURRENT_ENV = 'testing';
+
+// Host configuration per environment
+const CONFIG = {
+  production: {
+    API_HOST: 'https://menu4.xyz',
+    WS_URL: 'wss://menu4.xyz/ws/database-updates',
+  },
+  testing: {
+    API_HOST: 'https://ghanish.in',
+    WS_URL: 'wss://ghanish.in/ws/database-updates',
+  },
+  development: {
+    API_HOST: 'https://men4u.xyz',
+    WS_URL: 'wss://men4u.xyz/ws/database-updates',
+  },
 };
 
-export const API_ENDPOINTS = {
-  // Common API endpoints (v2)
-  CDS_KDS_ORDER_LISTVIEW: '/v2/common/cds_kds_order_listview',
-  GET_OUTLET_LIST: '/v2/common/get_outlet_list',
-  
-  // Common API endpoints (v1)
-  PARTNER_OUTLET_LIST: '/api/common/partner/outletlist',
-  
-  // Common API endpoints (legacy)
-  LOGOUT: '/common_api/logout'
+const { API_HOST, WS_URL } = CONFIG[CURRENT_ENV];
+
+// Common base paths used across the app
+const V2_COMMON_BASE = `${API_HOST}/v2/common`;
+const COMMON_API_BASE = `${API_HOST}/common_api`;
+const API_BASE = `${API_HOST}/api`;
+
+export const ENV = {
+  env: CURRENT_ENV,
+  API_HOST,
+  WS_URL,
+  V2_COMMON_BASE,
+  COMMON_API_BASE,
+  API_BASE,
 };
 
-// Helper function to build full API URLs
-export const buildApiUrl = (baseUrl, endpoint) => {
-  return `${baseUrl}${endpoint}`;
-};
-
-// Pre-built API URLs for common use
-export const API_URLS = {
-  CDS_KDS_ORDER_LISTVIEW: buildApiUrl(API_BASE_URLS.MEN4U_BASE, API_ENDPOINTS.CDS_KDS_ORDER_LISTVIEW),
-  GET_OUTLET_LIST: buildApiUrl(API_BASE_URLS.MEN4U_BASE, API_ENDPOINTS.GET_OUTLET_LIST),
-  PARTNER_OUTLET_LIST: buildApiUrl(API_BASE_URLS.MENULTRA_BASE, API_ENDPOINTS.PARTNER_OUTLET_LIST),
-  LOGOUT: buildApiUrl(API_BASE_URLS.MEN4U_BASE, API_ENDPOINTS.LOGOUT)
-};
+export default ENV;

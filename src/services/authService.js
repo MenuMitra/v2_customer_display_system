@@ -1,12 +1,12 @@
 import axios from "axios";
-const BASE_URL = "https://ghanish.in";
+import { ENV } from "../config/apiConfig";
 
 export const authService = {
   // Send OTP
   sendOTP: async (mobileNumber) => {
     try {
       const response = await axios.post(
-        `${BASE_URL}/v2/common/login`,
+        `${ENV.V2_COMMON_BASE}/login`,
         { mobile: mobileNumber, version: "2.1.1", app_type: "cds" },
         {
           headers: { "Content-Type": "application/json" },
@@ -36,7 +36,7 @@ export const authService = {
   resendOTP: async (mobileNumber) => {
     try {
       const response = await axios.post(
-        `${BASE_URL}/v2/common/login`,
+        `${ENV.V2_COMMON_BASE}/login`,
         { mobile: mobileNumber, version: "2.1.1", app_type: "cds" },
         {
           headers: { "Content-Type": "application/json" },
@@ -79,7 +79,7 @@ export const authService = {
 
     try {
       const response = await axios.post(
-        `${BASE_URL}/v2/common/verify_otp`,
+        `${ENV.V2_COMMON_BASE}/verify_otp`,
         {
           mobile: mobileNumber,
           otp,

@@ -6,6 +6,7 @@ import OutletDropdown from "./OutletDropdown";
 import foodIcon from "../assets/food_icon.jpg";
 import { handleApiError } from "../utils/sessionUtils";
 import SubscriptionRemainDay from "./SubscriptionRemainDay";
+import { ENV } from "../config/apiConfig";
 
 function Header({ outletName, onRefresh }) {
   const location = useLocation();
@@ -80,7 +81,7 @@ function Header({ outletName, onRefresh }) {
       const ownerId = parsed ? (parsed.user_id || parsed.owner_id || null) : null;
       if (!accessToken || !ownerId) return;
 
-      fetch("https://ghanish.in/v2/common/get_outlet_list", {
+      fetch(`${ENV.V2_COMMON_BASE}/get_outlet_list`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -114,7 +115,7 @@ function Header({ outletName, onRefresh }) {
         app_source: "admin",
       };
       const response = await axios.post(
-        "https://ghanish.in/v2/common/cds_kds_order_listview",
+        `${ENV.V2_COMMON_BASE}/cds_kds_order_listview`,
         requestPayload,
         {
           headers: {
@@ -334,7 +335,7 @@ function Header({ outletName, onRefresh }) {
           "Entjx4wL350fdkAPvRs2YHKeBgImyElMnk5USx1QYz5UbWGooIt16BLTqGMsCdfzQPn9SKg3YtkQ94KHHqk.cYjkEmN.8nvp-Qyr",
       };
 
-      const response = await fetch("https://ghanish.in/common_api/logout", {
+      const response = await fetch(`${ENV.COMMON_API_BASE}/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

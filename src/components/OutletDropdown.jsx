@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { handleSessionExpired } from "../utils/sessionUtils";
+import { ENV } from "../config/apiConfig";
 
 const OutletDropdown = ({ onSelect }) => {
   const [outlets, setOutlets] = useState([]);
@@ -45,7 +46,7 @@ const OutletDropdown = ({ onSelect }) => {
     setLoading(true);
 
     // Fetch outlets filtered by userId - backend should filter based on user role and associated outlets
-    fetch("https://ghanish.in/v2/common/get_outlet_list", {
+    fetch(`${ENV.V2_COMMON_BASE}/get_outlet_list`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
