@@ -193,7 +193,7 @@ function Login() {
                 }}
                 autoFocus={!showOtpInput}
                 disabled={showOtpInput}
-                className={`mb-[12px] h-[48px] w-full rounded-[8px] border-[0.6px] px-4 text-[1.08rem] transition-colors duration-200 ${
+                className={`mb-[12px] h-[48px] w-full rounded-3xl border-[0.6px] px-4 text-[1.08rem] transition-colors duration-200 ${
                   showOtpInput
                     ? "border-gray-200 bg-[#f3f4f7] text-[#a0a4b0]"
                     : "border-[#ddd] bg-white text-[#22242c]"
@@ -203,7 +203,7 @@ function Login() {
                 <div className="mt-1 text-sm text-red-600">{mobileValidationMsg}</div>
               )}
               <button
-                className={`mt-[12px] flex w-full items-center justify-center rounded-[10px] py-[15px] text-[1.11rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
+                className={`mt-[12px] flex w-full items-center justify-center rounded-3xl py-[12px] text-[1.11rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
                   isMobileReady && !loading
                     ? "bg-[#178be2]"
                     : "cursor-not-allowed bg-[#e5e7eb]"
@@ -228,7 +228,7 @@ function Login() {
                       key={index}
                       ref={otpRefs[index]}
                       type="text"
-                      className={`m-[15px] h-[50px] w-[70px] rounded-[8px] border bg-white text-center text-[1.15rem] transition focus:outline-none ${
+                      className={`m-[15px] h-[50px] w-[70px] rounded-3xl border bg-white text-center text-[1.15rem] transition focus:outline-none ${
                         otpError ? "border-red-500" : "border-[#cbcfd5]"
                       } ${
                         isActive
@@ -257,7 +257,7 @@ function Login() {
                   type="button"
                   onClick={handleResendOtp}
                   disabled={resendDisabled}
-                  className={`text-base font-medium underline-offset-2 transition ${
+                  className={`text-base rounded-3xl font-medium underline-offset-2 transition ${
                     resendDisabled
                       ? "cursor-not-allowed text-[#9ca3af]"
                       : "text-[#2563eb] hover:underline"
@@ -268,13 +268,13 @@ function Login() {
                 <button
                   onClick={handleBackToLogin}
                   type="button"
-                  className="text-base font-medium text-[#2563eb] underline-offset-2 hover:underline"
+                  className="text-base rounded-3xl font-medium text-[#2563eb] underline-offset-2 hover:underline"
                 >
                   Back to login
                 </button>
               </div>
               <button
-                className={`flex w-full items-center justify-center rounded-[10px] py-[14px] text-[1.1rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
+                className={`flex w-full items-center justify-center rounded-3xl py-[14px] text-[1.1rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
                   isOtpReady ? "bg-[#178be2]" : "cursor-not-allowed bg-[#e5e7eb]"
                 }`}
                 type="submit"

@@ -257,7 +257,7 @@ function Header({ outletName, onRefresh }) {
     const menuCount = order.menu_details ? order.menu_details.length : 0;
 
     return (
-      <div className="mb-2 rounded-lg bg-white p-2 shadow-sm transition-shadow hover:shadow-md sm:mb-3 sm:rounded-xl sm:p-3 md:mb-4 md:rounded-2xl md:p-4">
+      <div className="mb-2 rounded-3xl bg-white p-1 shadow-sm transition-shadow hover:shadow-md sm:mb-3 rounder-3xl sm:p-3 md:mb-4 rounder-3xl md:p-2">
         <div className="flex items-center justify-between gap-2">
           <h2 className="truncate text-base font-bold text-gray-900 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
             #{order.order_number}
@@ -377,17 +377,17 @@ function Header({ outletName, onRefresh }) {
             </div>
 
             {/* Navigation Links */}
-            <div className={`absolute left-0 top-full z-30 w-full border-t border-white/20 bg-[#0b1727] ${isMobileMenuOpen ? "block" : "hidden"} lg:relative lg:top-0 lg:z-auto lg:mt-0 lg:flex lg:w-auto lg:border-0 lg:bg-transparent`}>
+            <div className={`absolute left-0 top-full z-30 w-full border-t bg-transparent ${isMobileMenuOpen ? "block" : "hidden"} lg:relative lg:top-0 lg:z-auto lg:mt-0 lg:flex lg:w-auto lg:border-0 lg:bg-transparent`}>
               <ul className="flex w-full flex-col gap-2 px-2 pb-2 pt-2 sm:gap-2.5 sm:px-3 sm:pb-3 sm:pt-3 lg:flex-row lg:items-center lg:justify-end lg:gap-2 lg:px-0 lg:pb-0 lg:pt-0">
                 <li className="flex w-full flex-col gap-2 sm:gap-2.5 lg:flex-row lg:items-center lg:gap-2">
                 {/* Toggle for Today/All */}
                 <div
-                  className="flex h-9 w-full overflow-hidden rounded-md border border-[#2376dcff] bg-white sm:h-10 sm:rounded-lg md:h-11 lg:w-auto"
+                  className="flex h-9 w-full overflow-hidden rounded-md bg-transparent sm:h-10 sm:rounded-lg md:h-11 lg:w-auto"
                   role="group"
                 >
                   <button
                     type="button"
-                    className={`flex-1 min-w-[60px] rounded-l-md text-center text-xs font-semibold leading-9 transition-colors hover:bg-[#f0f0f0] sm:min-w-[70px] sm:rounded-l-lg sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
+                    className={`flex-1 min-w-[60px] rounded-l-3xl text-center text-xs font-semibold leading-9 transition-colors hover:bg-[#f0f0f0] sm:min-w-[70px] rounded-l-3xl sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
                       dateRange === "today"
                         ? "bg-[#0081ff] text-white hover:bg-[#0070e6]"
                         : isTodayHovered
@@ -404,7 +404,7 @@ function Header({ outletName, onRefresh }) {
                   </button>
                   <button
                     type="button"
-                    className={`flex-1 min-w-[60px] rounded-r-md border-l border-[#babfc5] text-center text-xs font-semibold leading-9 transition-colors hover:bg-[#f0f0f0] sm:min-w-[70px] sm:rounded-r-lg sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
+                    className={`flex-1 min-w-[60px] rounded-r-3xl border-l border-[#babfc5] text-center text-xs font-semibold leading-9 transition-colors hover:bg-[#f0f0f0] sm:min-w-[70px] rounded-r-3xl sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
                       dateRange === "all"
                         ? "bg-[#0081ff] text-white hover:bg-[#0070e6]"
                         : isAllHovered
@@ -424,7 +424,7 @@ function Header({ outletName, onRefresh }) {
                 <div className="flex w-full items-center justify-start gap-8 sm:gap-10 md:gap-12 lg:w-auto lg:justify-start lg:gap-3">
                   {/* Refresh Icon */}
                   <button
-                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border-2 border-[#babfc5] bg-white text-black transition-colors hover:bg-gray-50 active:bg-gray-100 sm:h-10 sm:w-10 sm:rounded-lg md:h-11 md:w-11"
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-3xl border-2 border-[#babfc5] bg-white text-black transition-colors hover:bg-gray-50 active:bg-gray-100 sm:h-10 sm:w-10 rounded-3xl md:h-11 md:w-11"
                     title="Refresh"
                     onClick={() => {
                       if (selectedOutlet) {
@@ -437,7 +437,7 @@ function Header({ outletName, onRefresh }) {
 
                   {/* Fullscreen Icon */}
                   <button
-                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border-2 border-[#babfc5] bg-white text-black transition-colors hover:bg-gray-50 active:bg-gray-100 sm:h-10 sm:w-10 sm:rounded-lg md:h-11 md:w-11 ${
+                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-3xl border-2 border-[#babfc5] bg-white text-black transition-colors hover:bg-gray-50 active:bg-gray-100 sm:h-10 sm:w-10 rounded-3xl md:h-11 md:w-11 ${
                       isFullscreenHovered ? "bg-gray-50" : ""
                     }`}
                     title="Fullscreen"
@@ -465,7 +465,7 @@ function Header({ outletName, onRefresh }) {
                   </button>
                   {/* Logout Icon */}
                   <button
-                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border-2 border-red-500 bg-white text-black transition-colors hover:bg-[#ffe8e8] active:bg-[#ffe0e0] sm:h-10 sm:w-10 sm:rounded-lg md:h-11 md:w-11 ${
+                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center border-2 rounded-3xl border-red-500 bg-white text-black transition-colors hover:bg-[#ffe8e8] active:bg-[#ffe0e0] sm:h-10 sm:w-10  rounded-3xl md:h-11 md:w-11 ${
                       isLogoutHovered ? "bg-[#ffe8e8]" : ""
                     }`}
                     title="Logout"
@@ -502,14 +502,14 @@ function Header({ outletName, onRefresh }) {
                 <div className="flex w-full items-center justify-between gap-3 sm:gap-4 md:gap-6">
                   <button
                     type="button"
-                    className="flex-1 rounded-lg border-2 border-gray-400 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-100 sm:px-5 sm:py-2.5 sm:text-base md:px-6 md:py-3 md:text-lg"
+                    className="flex-1 rounded-3xl border-2 border-gray-400 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-100 sm:px-5 sm:py-2.5 sm:text-base md:px-6 md:py-3 md:text-lg"
                     onClick={() => handleLogoutConfirm(false)}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className="flex-1 flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 active:bg-red-800 sm:px-5 sm:py-2.5 sm:text-base md:px-6 md:py-3 md:text-lg"
+                    className="flex-1 flex items-center justify-center rounded-3xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 active:bg-red-800 sm:px-5 sm:py-2.5 sm:text-base md:px-6 md:py-3 md:text-lg"
                     onClick={() => handleLogoutConfirm(true)}
                   >
                     <i className="fa-solid fa-right-from-bracket mr-2 sm:mr-2.5 md:mr-3"></i> Exit Me

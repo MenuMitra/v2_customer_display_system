@@ -3,7 +3,7 @@ import logo from "../assets/logo.png";
 
 const Footer = () => {
   return (
-    <div className="mt-2 border-t border-gray-200 bg-white p-2 text-center">
+    <div className="mt-2 border-t border-gray-200 p-2 text-center">
       <div className="h-0.5" />
       <div className="mt-2.5 mb-2.5 flex items-center justify-center gap-[30px]">
         <a

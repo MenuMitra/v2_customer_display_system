@@ -134,11 +134,11 @@ const OutletDropdown = ({ onSelect }) => {
   };
 
   return (
-    <div ref={dropdownRef} className="relative inline-block min-w-[220px] rounded-[3px]">
+    <div ref={dropdownRef} className="relative inline-block min-w-[220px] rounded-3xl">
       <button
         type="button"
         onClick={() => setShow(!show)}
-        className="flex w-full min-h-[40px] items-center justify-between rounded-[15px] border-[1.5px] border-[#d0d5dd] bg-white px-4 py-[0.32rem] text-left text-[1.12rem] font-medium text-[#b4b6b9ff] outline-none transition-colors duration-300 ease-in-out hover:border-[#b0b6bb]"
+        className="flex w-full min-h-[40px] items-center justify-between rounded-3xl border-[1.5px] border-[#d0d5dd] bg-white px-4 py-[0.32rem] text-left text-[1.12rem] font-medium text-[#b4b6b9ff] outline-none transition-colors duration-300 ease-in-out hover:border-[#b0b6bb]"
       >
         <span>{selected ? toCamelCase(selected.name) : "Select Outlet"}</span>
         <span className={`inline-block h-6 w-6 align-middle transition-transform duration-300 ease-in-out ${show ? "rotate-180" : "rotate-0"}`}>
@@ -152,7 +152,7 @@ const OutletDropdown = ({ onSelect }) => {
           <div className="bg-[#d1d3d4] p-2">
             <input
               type="search"
-              className="h-12 w-full rounded-[12px] border-0 bg-white px-4 text-[1.25rem] outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="h-12 w-full rounded-3xl border-0 bg-white px-4 text-[1.25rem] outline-none focus:ring-2 focus:ring-blue-500/20"
               placeholder="Search outlets..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
