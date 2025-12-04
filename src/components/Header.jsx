@@ -252,74 +252,52 @@ function Header({ outletName, onRefresh }) {
       ? { header: "display-4", orderNumber: "display-5", itemCount: "display-6" }
       : { header: "h4", orderNumber: "h5", itemCount: "h6" };
 
-      const OrderCard = ({ order, showIcon }) => {
-        // Count the number of distinct menu items
-        const menuCount = order.menu_details ? order.menu_details.length : 0;
-      
-        return (
-          <div
-            className="bg-white rounded-3 mb-2 p-3"
-            style={{
-              margin: "12px",
-              fontSize: "1.8rem",
-            }}
-          >
-            <div className="d-flex justify-content-between align-items-center">
-              <h2
-                style={{
-                  fontSize: "1.8rem",
-                  fontWeight: "bold",
-                  marginBottom: 0,
-                  display: "inline",
-                }}
-              >
-                #{order.order_number}
-              </h2>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  fontSize: "1.8rem",
-                }}
-              >
-                <span>{menuCount}</span>
-                {showIcon && (
-                  <img
-                    src={foodIcon}
-                    alt="Food Icon"
-                    style={{
-                      height: "2.2rem",
-                      width: "2.2rem",
-                      verticalAlign: "middle",
-                      marginBottom: 0,
-                    }}
-                  />
-                )}
-              </div>
-            </div>
+  const OrderCard = ({ order, showIcon }) => {
+    // Count the number of distinct menu items
+    const menuCount = order.menu_details ? order.menu_details.length : 0;
+
+    return (
+      <div className="mb-2 rounded-lg bg-white p-2 shadow-sm transition-shadow hover:shadow-md sm:mb-3 sm:rounded-xl sm:p-3 md:mb-4 md:rounded-2xl md:p-4">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="truncate text-base font-bold text-gray-900 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
+            #{order.order_number}
+          </h2>
+          <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
+            <span className="text-base font-semibold text-gray-700 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
+              {menuCount}
+            </span>
+            {showIcon && (
+              <img
+                src={foodIcon}
+                alt="Food Icon"
+                className="h-5 w-5 object-contain sm:h-6 sm:w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 xl:h-10 xl:w-10"
+              />
+            )}
           </div>
-        );
-      };
-      
+        </div>
+      </div>
+    );
+  };
 
   const renderOrdersInSection = (statusFilter, title, bgColorClass) => (
-    <div className={`col-12 col-md-4 ${bgColorClass}`} style={{ minHeight: "90vh" }}>
-      <h3
-        className="text-white text-center fw-bold mb-4"
-        style={{ fontSize: "2.6rem", letterSpacing: "2px" }}
-      >
+    <div className={`flex-1 w-full h-full px-2 py-3 overflow-y-auto sm:px-3 sm:py-4 md:px-4 md:py-5 ${bgColorClass}`}>
+      <h3 className="mb-2 text-center text-lg font-bold tracking-wide text-white sm:mb-3 sm:text-xl sm:tracking-wider md:mb-4 md:text-2xl lg:text-3xl xl:text-4xl">
         {title}
       </h3>
       {error ? (
-        <div className="alert alert-danger text-center" role="alert">
+        <div
+          className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-xs font-medium text-red-600 sm:mt-3 sm:px-4 sm:py-2.5 sm:text-sm md:mt-4 md:px-5 md:py-3 md:text-base"
+          role="alert"
+        >
           {error}
         </div>
       ) : (
         <>
           {orders
             .filter((order) => order.status === statusFilter)
-            .map((order) => <OrderCard key={order.order_id} order={order} showIcon={true} />)}
+            .map((order) => (
+              <OrderCard key={order.order_id} order={order} showIcon={true} />
+            ))}
         </>
       )}
     </div>
@@ -363,20 +341,20 @@ function Header({ outletName, onRefresh }) {
   return (
     <>
       <header className="bg-white shadow-sm">
-        <nav className="navbar navbar-expand-lg navbar-dark py-2">
-          <div className="container-fluid px-3 px-md-4 px-lg-5" style={{ position: "relative" }}>
+        <nav className="bg-[#0b1727] py-1 sm:py-1.5 md:py-2 overflow-visible">
+          <div className="relative flex w-full items-center justify-between px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 overflow-visible">
             {/* Brand/Logo with Outlet Dropdown */}
-            <div className="navbar-brand d-flex align-items-center gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-1 overflow-visible sm:gap-1.5 md:gap-2">
               <img
                 src={logo}
                 alt="Menumitra Logo"
-                style={{ height: "35px", width: "35px", objectFit: "contain" }}
+                className="h-7 w-7 flex-shrink-0 object-contain sm:h-8 sm:w-8 md:h-[32px] md:w-[32px] lg:h-[35px] lg:w-[35px]"
               />
-              <span className="fs-4 fw-bold text-dark d-none d-lg-inline">Menumitra</span>
-              <span className="fs-4 fw-bold text-dark d-inline d-lg-none">MM</span>
-              <div>
+              <span className="hidden flex-shrink-0 text-sm font-bold text-white sm:inline sm:text-base md:text-lg lg:text-xl xl:text-2xl">Menumitra</span>
+              <span className="inline flex-shrink-0 text-sm font-bold text-white sm:hidden">MM</span>
+              <div className="relative z-10 flex-shrink-0 overflow-visible">
                 {singleOutlet ? (
-                  <span style={{ fontSize: "1.3rem", color: "#9aa0a6", fontWeight: 600 }}>
+                  <span className="truncate text-xs font-semibold text-[#9aa0a6] sm:text-sm md:text-base lg:text-lg xl:text-[1.3rem]">
                     {toTitleCase(singleOutletName)}
                   </span>
                 ) : (
@@ -385,75 +363,37 @@ function Header({ outletName, onRefresh }) {
               </div>
             </div>
             <button
-              className={`navbar-toggler border-0 d-lg-none ${isMobileMenuOpen ? "" : "collapsed"}`}
+              className="absolute right-2 top-1/2 z-20 inline-flex -translate-y-1/2 items-center justify-center rounded-md border-0 bg-transparent p-1.5 text-white transition-opacity hover:opacity-80 sm:right-3 sm:p-2 md:right-4 md:p-2.5 lg:hidden"
               type="button"
               aria-label="Toggle navigation"
               aria-expanded={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-              style={{
-                position: "absolute",
-                top: "12px",
-                right: "20px",
-                padding: "6px",
-              }}
             >
-              <i className="fa-solid fa-bars text-dark fs-3"></i>
+              <i className="fa-solid fa-bars text-lg sm:text-xl md:text-2xl"></i>
             </button>
             {/* Center Title */}
-            <div
-              className="d-none d-lg-block"
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                fontSize: "36px",
-                fontWeight: "bold",
-                color: "#000",
-                zIndex: 1,
-              }}
-            >
+            <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 text-xl font-bold text-white lg:block lg:text-3xl xl:text-[36px]">
               C D S
             </div>
 
             {/* Navigation Links */}
-            <div className={`collapse navbar-collapse justify-content-lg-end ${isMobileMenuOpen ? "show" : ""}`}>
-              <ul
-                className="navbar-nav ms-auto align-items-start align-items-lg-center flex-column flex-lg-row"
-                style={{ gap: "8px" }}
-              >
-                <li className="nav-item d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center w-100 gap-3 gap-lg-2">
+            <div className={`absolute left-0 top-full z-30 w-full border-t border-white/20 bg-[#0b1727] ${isMobileMenuOpen ? "block" : "hidden"} lg:relative lg:top-0 lg:z-auto lg:mt-0 lg:flex lg:w-auto lg:border-0 lg:bg-transparent`}>
+              <ul className="flex w-full flex-col gap-2 px-2 pb-2 pt-2 sm:gap-2.5 sm:px-3 sm:pb-3 sm:pt-3 lg:flex-row lg:items-center lg:justify-end lg:gap-2 lg:px-0 lg:pb-0 lg:pt-0">
+                <li className="flex w-full flex-col gap-2 sm:gap-2.5 lg:flex-row lg:items-center lg:gap-2">
                 {/* Toggle for Today/All */}
                 <div
-                  className="btn-group w-100 w-lg-auto"
+                  className="flex h-9 w-full overflow-hidden rounded-md border border-[#2376dcff] bg-white sm:h-10 sm:rounded-lg md:h-11 lg:w-auto"
                   role="group"
-                  style={{
-                    border: "1.2px solid #2376dcff",
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                    height: "40px",
-                    background: "#fff",
-                  }}
                 >
                   <button
                     type="button"
-                    className="btn flex-fill flex-lg-grow-0"
-                    style={{
-                      backgroundColor:
-                        dateRange === "today" ? "#0081ff" : isTodayHovered ? "#f0f0f0" : "#fff",
-                      color: dateRange === "today" ? "#fff" : "#0081ff",
-                      border: "none",
-                      borderRadius: "8px 0 0 8px",
-                      fontWeight: 600,
-                      fontSize: "0.875rem",
-                      minWidth: "56px",
-                      height: "40px",
-                      boxShadow: "none",
-                      transition: "background-color 0.15s, color 0.15s",
-                      padding: "0",
-                      lineHeight: "40px",
-                      textAlign: "center",
-                    }}
+                    className={`flex-1 min-w-[60px] rounded-l-md text-center text-xs font-semibold leading-9 transition-colors hover:bg-[#f0f0f0] sm:min-w-[70px] sm:rounded-l-lg sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
+                      dateRange === "today"
+                        ? "bg-[#0081ff] text-white hover:bg-[#0070e6]"
+                        : isTodayHovered
+                        ? "bg-[#f0f0f0] text-[#0081ff]"
+                        : "bg-white text-[#0081ff]"
+                    }`}
                     onClick={() => setDateRange("today")}
                     onMouseEnter={() => {
                       if (dateRange !== "today") setIsTodayHovered(true);
@@ -464,24 +404,13 @@ function Header({ outletName, onRefresh }) {
                   </button>
                   <button
                     type="button"
-                    className="btn flex-fill flex-lg-grow-0"
-                    style={{
-                      backgroundColor:
-                        dateRange === "all" ? "#0081ff" : isAllHovered ? "#f0f0f0" : "#fff",
-                      color: dateRange === "all" ? "#fff" : "#0081ff",
-                      border: "none",
-                      borderRadius: "0 8px 8px 0",
-                      fontWeight: 600,
-                      fontSize: "0.875rem",
-                      minWidth: "56px",
-                      height: "40px",
-                      boxShadow: "none",
-                      transition: "background-color 0.15s, color 0.15s",
-                      padding: "0",
-                      lineHeight: "40px",
-                      textAlign: "center",
-                      borderLeft: "1px solid #babfc5",
-                    }}
+                    className={`flex-1 min-w-[60px] rounded-r-md border-l border-[#babfc5] text-center text-xs font-semibold leading-9 transition-colors hover:bg-[#f0f0f0] sm:min-w-[70px] sm:rounded-r-lg sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
+                      dateRange === "all"
+                        ? "bg-[#0081ff] text-white hover:bg-[#0070e6]"
+                        : isAllHovered
+                        ? "bg-[#f0f0f0] text-[#0081ff]"
+                        : "bg-white text-[#0081ff]"
+                    }`}
                     onClick={() => setDateRange("all")}
                     onMouseEnter={() => {
                       if (dateRange !== "all") setIsAllHovered(true);
@@ -492,81 +421,59 @@ function Header({ outletName, onRefresh }) {
                   </button>
                 </div>
                 {/* Action Buttons */}
-                <div className="d-flex w-100 w-lg-auto justify-content-between justify-content-lg-start gap-3 gap-lg-2 mt-1 mt-lg-0 align-items-center">
+                <div className="flex w-full items-center justify-start gap-8 sm:gap-10 md:gap-12 lg:w-auto lg:justify-start lg:gap-3">
                   {/* Refresh Icon */}
                   <button
-                    className="btn btn-outline-secondary d-flex align-items-center justify-content-center flex-shrink-0"
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border-2 border-[#babfc5] bg-white text-black transition-colors hover:bg-gray-50 active:bg-gray-100 sm:h-10 sm:w-10 sm:rounded-lg md:h-11 md:w-11"
                     title="Refresh"
                     onClick={() => {
                       if (selectedOutlet) {
                         fetchOrders(selectedOutlet.outlet_id);
                       }
                     }}
-                    style={{
-                      border: "2px solid #babfc5",
-                      borderRadius: "8px",
-                      width: "40px",
-                      height: "40px",
-                      background: "#fff",
-                      color: "#000",
-                      transition: "none",
-                    }}
                   >
-                    <i className="fa-solid fa-rotate" />
+                    <i className="fa-solid fa-rotate text-sm text-black sm:text-base md:text-lg" />
                   </button>
 
                   {/* Fullscreen Icon */}
                   <button
-                    className="btn d-flex align-items-center justify-content-center flex-shrink-0 ms-lg-2"
+                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border-2 border-[#babfc5] bg-white text-black transition-colors hover:bg-gray-50 active:bg-gray-100 sm:h-10 sm:w-10 sm:rounded-lg md:h-11 md:w-11 ${
+                      isFullscreenHovered ? "bg-gray-50" : ""
+                    }`}
                     title="Fullscreen"
                     onClick={() => {
                       if (location.pathname === "/orders") {
-                        const container = document.querySelector(".container-fluid.p-0");
-                        if (container && container.requestFullscreen) {
+                        const container = document.querySelector(".orders-container");
+                        if (!container) return;
+                        if (container.requestFullscreen) {
                           container.requestFullscreen();
-                        } else if (container && container.webkitRequestFullscreen) {
+                        } else if (container.webkitRequestFullscreen) {
                           container.webkitRequestFullscreen();
-                        } else if (container && container.mozRequestFullScreen) {
+                        } else if (container.mozRequestFullScreen) {
                           container.mozRequestFullScreen();
-                        } else if (container && container.msRequestFullscreen) {
+                        } else if (container.msRequestFullscreen) {
                           container.msRequestFullscreen();
                         }
                       } else {
                         navigate("/orders");
                       }
                     }}
-                    style={{
-                      border: "2px solid #babfc5",
-                      borderRadius: "8px",
-                      width: "40px",
-                      height: "40px",
-                      background: isFullscreenHovered ? "#f0f0f0" : "#fff",
-                      color: isFullscreenHovered ? "#000" : "grey",
-                      transition: "background-color 0.15s, color 0.15s",
-                    }}
                     onMouseEnter={() => setIsFullscreenHovered(true)}
                     onMouseLeave={() => setIsFullscreenHovered(false)}
                   >
-                    <i className="bx bx-fullscreen"></i>
+                    <i className="bx bx-fullscreen text-sm text-black sm:text-base md:text-lg"></i>
                   </button>
                   {/* Logout Icon */}
                   <button
-                    className="btn d-flex align-items-center justify-content-center flex-shrink-0 ms-lg-2"
+                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border-2 border-red-500 bg-white text-black transition-colors hover:bg-[#ffe8e8] active:bg-[#ffe0e0] sm:h-10 sm:w-10 sm:rounded-lg md:h-11 md:w-11 ${
+                      isLogoutHovered ? "bg-[#ffe8e8]" : ""
+                    }`}
                     title="Logout"
                     onClick={() => setShowLogoutConfirm(true)}
-                    style={{
-                      border: "2px solid red",
-                      borderRadius: "8px",
-                      width: "40px",
-                      height: "40px",
-                      background: isLogoutHovered ? "#ffe8e8" : "#fff",
-                      color: "red",
-                      transition: "background-color 0.15s, color 0.15s",
-                    }}
                     onMouseEnter={() => setIsLogoutHovered(true)}
                     onMouseLeave={() => setIsLogoutHovered(false)}
                   >
-                    <i className="fa-solid fa-right-from-bracket"></i>
+                    <i className="fa-solid fa-right-from-bracket text-sm text-black sm:text-base md:text-lg"></i>
                   </button>
                 </div>
                 </li>
@@ -579,93 +486,34 @@ function Header({ outletName, onRefresh }) {
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
         <>
-          <div
-            className="modal-backdrop fade show"
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100vh",
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              zIndex: 1040,
-            }}
-          />
-          <div
-            className="modal"
-            tabIndex="-1"
-            style={{
-              display: "block",
-              position: "fixed",
-              top: "40%",
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 1050,
-              width: "100%",
-              maxWidth: "320px",
-            }}
-          >
-            <div className="modal-dialog" style={{ margin: 0 }}>
-              <div
-                className="modal-content"
-                style={{
-                  border: "1px solid #dc3545",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                }}
-              >
-                <div
-                  className="modal-header d-flex justify-content-center align-items-center"
-                  style={{ borderBottom: "1px solid #dee2e6" }}
-                >
-                  <h5 className="modal-title fw-bold text-center m-0">
-                    <i
-                      className="fa-solid fa-right-from-bracket me-2"
-                      style={{ color: "red", paddingBottom: "10px" }}
-                    ></i>
-                    Confirm Logout
-                  </h5>
-                </div>
-                <div className="modal-body d-flex justify-content-center align-items-center text-center">
-                  <p className="fw-bold m-0">Are you sure you want to logout?</p>
-                </div>
-                <div
-                  className="modal-footer d-flex justify-content-center"
-                  style={{ borderTop: "1px solid #dee2e6", paddingTop: "10px", paddingBottom: "15px" }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '50px' }}>
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() => handleLogoutConfirm(false)}
-                      style={{
-                        backgroundColor: "white",
-                        color: "#6c757d",
-                        border: "1px solid #6c757d",
-                        borderRadius: "15px",
-                        padding: "8px 16px",
-                        transition: "background-color 0.15s ease-in-out"
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = "#e9ecef";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = "white";
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-danger"
-                      onClick={() => handleLogoutConfirm(true)}
-                      style={{ borderRadius: "15px" }}
-                    >
-                      <i className="fa-solid fa-right-from-bracket me-2"></i> Exit Me
-                    </button>
-                  </div>
-
-                  
+          <div className="fixed inset-0 z-[1040] bg-black/50" onClick={() => setShowLogoutConfirm(false)} />
+          <div className="fixed inset-0 z-[1050] flex items-center justify-center px-4 sm:px-6 md:px-8" tabIndex="-1">
+            <div className="w-full max-w-[280px] rounded-lg border-2 border-red-500 bg-white shadow-xl sm:max-w-[320px] sm:rounded-xl md:max-w-[360px] md:rounded-2xl">
+              <div className="flex items-center justify-center border-b border-gray-200 px-4 py-3 sm:px-5 sm:py-4 md:px-6 md:py-5">
+                <h5 className="m-0 flex items-center text-center text-sm font-bold text-gray-900 sm:text-base md:text-lg">
+                  <i className="fa-solid fa-right-from-bracket mr-2 text-red-600 sm:mr-2.5 md:mr-3"></i>
+                  Confirm Logout
+                </h5>
+              </div>
+              <div className="flex items-center justify-center px-4 py-4 text-center text-sm font-semibold text-gray-700 sm:px-5 sm:py-5 sm:text-base md:px-6 md:py-6 md:text-lg">
+                <p className="m-0">Are you sure you want to logout?</p>
+              </div>
+              <div className="flex justify-center border-t border-gray-200 px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4 md:px-6 md:pb-6 md:pt-5">
+                <div className="flex w-full items-center justify-between gap-3 sm:gap-4 md:gap-6">
+                  <button
+                    type="button"
+                    className="flex-1 rounded-lg border-2 border-gray-400 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-100 sm:px-5 sm:py-2.5 sm:text-base md:px-6 md:py-3 md:text-lg"
+                    onClick={() => handleLogoutConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="flex-1 flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 active:bg-red-800 sm:px-5 sm:py-2.5 sm:text-base md:px-6 md:py-3 md:text-lg"
+                    onClick={() => handleLogoutConfirm(true)}
+                  >
+                    <i className="fa-solid fa-right-from-bracket mr-2 sm:mr-2.5 md:mr-3"></i> Exit Me
+                  </button>
                 </div>
               </div>
             </div>
@@ -674,36 +522,37 @@ function Header({ outletName, onRefresh }) {
       )}
 
       {/* Orders Display Sections */}
-      <div className="container-fluid p-0" style={{ background: "#fff", minHeight: "90vh" }}>
+      <div className="orders-container h-[calc(100vh-60px)] w-full bg-white p-0 overflow-hidden sm:h-[calc(100vh-70px)] md:h-[calc(100vh-80px)]">
         {!selectedOutlet ? (
-          <div>
-            <div className="alert alert-warning text-center mb-0 rounded-0">
+          <div className="h-full flex items-center justify-center">
+            <div className="w-full border-y border-amber-300 bg-amber-100 py-2 text-center text-xs font-medium text-amber-900 sm:py-3 sm:text-sm md:py-4 md:text-base">
               Please select an outlet to view orders.
             </div>
           </div>
         ) : (
-          <>
+          <div className="h-full flex flex-col">
             {error && (
               <div
-                className="alert alert-danger text-center mt-3"
+                className="mx-2 mt-2 flex-shrink-0 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-xs font-bold text-red-600 sm:mx-3 sm:mt-3 sm:px-4 sm:py-2.5 sm:text-sm md:mx-4 md:mt-4 md:px-5 md:py-3 md:text-base"
                 role="alert"
-                style={{ fontWeight: "bold" }}
               >
                 {error}
               </div>
             )}
 
-            <SubscriptionRemainDay selectedOutlet={selectedOutlet} dateRange={dateRange} />
-
-            <div className="row g-0 min-vh-100" style={{ height: "90vh" }}>
-              {/* PLACED */}
-              {renderOrdersInSection("placed", "PLACED", "bg-secondary")}
-              {/* COOKING */}
-              {renderOrdersInSection("ongoing", "COOKING", "bg-warning")}
-              {/* PICKUP */}
-              {renderOrdersInSection("completed", "PICKUP", "bg-success")}
+            <div className="flex-shrink-0">
+              <SubscriptionRemainDay selectedOutlet={selectedOutlet} dateRange={dateRange} />
             </div>
-          </>
+
+            <div className="flex flex-1 flex-col overflow-x-auto sm:flex-row sm:items-stretch">
+              {/* PLACED */}
+              {renderOrdersInSection("placed", "PLACED", "bg-[#6c757d]")}
+              {/* COOKING */}
+              {renderOrdersInSection("ongoing", "COOKING", "bg-[#ffc107]")}
+              {/* PICKUP */}
+              {renderOrdersInSection("completed", "PICKUP", "bg-[#198754]")}
+            </div>
+          </div>
         )}
       </div>
     </>

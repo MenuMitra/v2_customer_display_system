@@ -86,58 +86,63 @@ const OutletSelectorDropdown = ({ onSelect }) => {
     <div
       ref={dropdownRef}
       className="relative inline-block min-w-[220px]"
-      style={{ position: "relative" }}
     >
-      <div className="dropdown">
-  <button
-    type="button"
-    className="btn btn-outline-secondary dropdown-toggle w-100"
-    onClick={() => setShow((s) => !s)}
-    aria-expanded={show}
-  >
-    {selected ? selected.name : "Select Outlet"}
-  </button>
-  {show && (
-    <ul className="dropdown-menu show">
-      {/* dropdown items here */}
-      <li><button className="dropdown-item">Outlet 1</button></li>
-      <li><button className="dropdown-item">Outlet 2</button></li>
-    </ul>
-  )}
-</div>
-
+      <button
+        type="button"
+        className="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-4 py-2 text-left text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+        onClick={() => setShow((s) => !s)}
+        aria-expanded={show}
+      >
+        {selected ? selected.name : "Select Outlet"}
+      </button>
       {show && (
-        <ul className="dropdown-menu show shadow overflow-y-auto" style={{ maxHeight: 240, width: "100%" }}>
+        <ul className="absolute z-50 mt-1 max-h-[240px] w-full overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
           {loading && (
-            <li className="dropdown-item">Loading...</li>
+            <li className="px-4 py-2 text-sm text-gray-600">Loading...</li>
           )}
           {!loading &&
-            outlets.map((outlet) => (
-              <li key={outlet.outlet_id}>
-                <button
-                  className={`dropdown-item w-full text-left outlet-list-items ${
-                    selected && selected.outlet_id === outlet.outlet_id
-                      ? "font-bold bg-blue-100 text-blue-600"
-                      : ""
-                  }`}
-                  onClick={() => handleSelect(outlet)}
-                >
-                  <div title={`${outlet.name} (${outlet.outlet_code})`} style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {outlet.name} <span className="text-xs text-gray-500">({outlet.outlet_code})</span>
-                  </div>
-                  <div
-                    className="text-xs"
-                    title={outlet.address}
-                    style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis", wordBreak: "break-word" }}
+            outlets.map((outlet) => {
+              const isSelected = selected && selected.outlet_id === outlet.outlet_id;
+              return (
+                <li key={outlet.outlet_id}>
+                  <button
+                    className={`w-full px-4 py-2 text-left transition-colors hover:bg-blue-50 hover:shadow-[0_4px_16px_rgba(13,110,253,0.18)] hover:border-[#0d6efd] ${
+                      isSelected
+                        ? "font-bold bg-blue-100 text-blue-600 border-[#0d6efd]"
+                        : "border-transparent"
+                    }`}
+                    onClick={() => handleSelect(outlet)}
                   >
-                    {outlet.address}
-                  </div>
-                  <div className="text-xs text-gray-700" title={outlet.owner_name} style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {outlet.owner_name}
-                  </div>
-                </button>
-              </li>
-            ))}
+                    <div
+                      title={`${outlet.name} (${outlet.outlet_code})`}
+                      className="truncate"
+                    >
+                      {outlet.name} <span className="text-xs text-gray-500">({outlet.outlet_code})</span>
+                    </div>
+                    <div
+                      className="text-xs text-gray-600"
+                      title={outlet.address}
+                      style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        wordBreak: "break-word"
+                      }}
+                    >
+                      {outlet.address}
+                    </div>
+                    <div
+                      className="truncate text-xs text-gray-700"
+                      title={outlet.owner_name}
+                    >
+                      {outlet.owner_name}
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
         </ul>
       )}
     </div>

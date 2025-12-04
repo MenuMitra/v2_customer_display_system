@@ -134,118 +134,98 @@ const OutletDropdown = ({ onSelect }) => {
   };
 
   return (
-    <div ref={dropdownRef} className="relative inline-block min-w-220px" style={{ position: "relative", borderRadius: "3px" }}>
+    <div ref={dropdownRef} className="relative inline-block min-w-[220px] rounded-[3px]">
       <button
         type="button"
         onClick={() => setShow(!show)}
-        className="w-100 select-outlet-btn"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          background: "#fff",
-          color: "#b4b6b9ff",
-          fontSize: "1.12rem",
-          fontWeight: 500,
-          padding: "0.32rem 1rem",
-          border: "1.5px solid #d0d5dd",
-          borderRadius: "15px",
-          minHeight: "40px",
-          textAlign: "left",
-          boxShadow: "none",
-          outline: "none",
-          cursor: "pointer",
-          transition: "background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease",
-        }}
+        className="flex w-full min-h-[40px] items-center justify-between rounded-[15px] border-[1.5px] border-[#d0d5dd] bg-white px-4 py-[0.32rem] text-left text-[1.12rem] font-medium text-[#b4b6b9ff] outline-none transition-colors duration-300 ease-in-out hover:border-[#b0b6bb]"
       >
-        <span>{selected ? toCamelCase (selected.name) : "Select Outlet"}</span>
-        <span style={{ display: "inline-block", width: "24px", height: "24px", verticalAlign: "middle", margin: "2px", transition: "transform 0.3s ease", transform: show ? "rotate(180deg)" : "rotate(0deg)" }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" style={{ display: "block" }} xmlns="http://www.w3.org/2000/svg">
+        <span>{selected ? toCamelCase(selected.name) : "Select Outlet"}</span>
+        <span className={`inline-block h-6 w-6 align-middle transition-transform duration-300 ease-in-out ${show ? "rotate-180" : "rotate-0"}`}>
+          <svg width="24" height="24" viewBox="0 0 24 24" className="block" xmlns="http://www.w3.org/2000/svg">
             <polyline points="6 9 12 15 18 9" fill="none" stroke="#878a95" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </span>
       </button>
       {show && (
-        <div className="dropdown-menu show shadow overflow-hidden" style={{ maxHeight: "440px", maxWidth: "300px", overflowY: "auto", overflowX: "hidden", background: "#fff" }}>
-          <div className="p-2" style={{ background: "#d1d3d4" }}>
+        <div className="absolute z-50 mt-1 max-h-[440px] w-full max-w-[300px] overflow-hidden overflow-y-auto overflow-x-hidden rounded-md border border-gray-200 bg-white shadow-lg">
+          <div className="bg-[#d1d3d4] p-2">
             <input
               type="search"
-              className="form-control form-control-sm"
-              style={{
-                fontSize: "1.25rem",
-                height: "3rem",
-                width: "100%",
-                borderRadius: "12px",
-                padding: "0 1rem",
-                boxSizing: "border-box",
-                background: "#fff"
-              }}
+              className="h-12 w-full rounded-[12px] border-0 bg-white px-4 text-[1.25rem] outline-none focus:ring-2 focus:ring-blue-500/20"
               placeholder="Search outlets..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <ul style={{ maxHeight: "250px", overflowY: "auto", overflowX: "hidden", paddingLeft: 0, marginBottom: 0, background: "#d1d3d4" }}>
-            {loading && <li className="dropdown-item">Loading...</li>}
+          <ul className="max-h-[250px] list-none overflow-y-auto overflow-x-hidden bg-[#d1d3d4] px-2 pb-0">
+            {loading && (
+              <li className="px-4 py-2 text-sm text-gray-600">Loading...</li>
+            )}
             {!loading && filteredOutlets.length === 0 && (
-              <li className="dropdown-item text-center text-muted">No outlets found</li>
+              <li className="px-4 py-2 text-center text-sm text-gray-500">No outlets found</li>
             )}
             {!loading &&
-              filteredOutlets.map((outlet) => (
-                <li
-                  key={outlet.outlet_id}
-                  style={{
-                    listStyle: "none",
-                    marginBottom: "14px",
-                    padding: "0 8px" // inner padding for separation from sides
-                  }}
-                >
-                  <button
-                    className="w-full text-left"
-                    onClick={() => handleSelect(outlet)}
-                    disabled={outlet.outlet_status === false}
-                    aria-disabled={outlet.outlet_status === false}
-                    style={{
-                      background: outlet.outlet_status === false ? "#ffecec" : "#fff",
-                      color: outlet.outlet_status === false ? "#a8071a" : "#222",
-                      fontWeight: 500,
-                      borderRadius: "12px",
-                      border: outlet.outlet_status === false
-                        ? "1.5px solid #ff4d4f"
-                        : (hoveredOutletId === outlet.outlet_id ? "1.5px solid #0d6efd" : "1.5px solid transparent"),
-                      padding: "0 1rem", // horizontal padding to match input
-                      minHeight: "6rem", // same min height as search bar
-                      width: "100%",
-                      textAlign: "left",
-                      boxShadow: outlet.outlet_status === false
-                        ? "0 1px 2px rgba(255, 77, 79, 0.25)"
-                        : (hoveredOutletId === outlet.outlet_id ? "0 4px 16px rgba(13,110,253,0.18)" : "0 1px 2px rgba(68, 73, 78, 0.11)"),
-                      fontSize: "1.25rem", // same font size as input
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      gap: "4px",
-                      overflow: "hidden",
-                      cursor: outlet.outlet_status === false ? "not-allowed" : "pointer",
-                      opacity: outlet.outlet_status === false ? 0.9 : 1
-                    }}
-                    onMouseEnter={() => setHoveredOutletId(outlet.outlet_id)}
-                    onMouseLeave={() => setHoveredOutletId(null)}
+              filteredOutlets.map((outlet) => {
+                const isInactive = outlet.outlet_status === false;
+                const isHovered = hoveredOutletId === outlet.outlet_id;
+                return (
+                  <li
+                    key={outlet.outlet_id}
+                    className="mb-[14px] list-none px-2"
                   >
-                    <span title={`${outlet.name} (${outlet.outlet_code})`} style={{ fontWeight: 700, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
-                      {outlet.name}
-                      {outlet.outlet_status === false && (
-                        <span style={{ marginLeft: "8px", fontSize: "0.9rem", color: "#cf1322", fontWeight: 600 }}>
-                          (Inactive)
+                    <button
+                      className={`flex min-h-[6rem] w-full flex-col justify-center gap-1 overflow-hidden rounded-[12px] border-[1.5px] px-4 text-left text-[1.25rem] font-medium transition-all ${
+                        isInactive
+                          ? "cursor-not-allowed border-[#ff4d4f] bg-[#ffecec] text-[#a8071a] opacity-90 shadow-[0_1px_2px_rgba(255,77,79,0.25)]"
+                          : isHovered
+                          ? "cursor-pointer border-[#0d6efd] bg-white text-[#222] shadow-[0_4px_16px_rgba(13,110,253,0.18)]"
+                          : "cursor-pointer border-transparent bg-white text-[#222] shadow-[0_1px_2px_rgba(68,73,78,0.11)]"
+                      }`}
+                      onClick={() => handleSelect(outlet)}
+                      disabled={isInactive}
+                      aria-disabled={isInactive}
+                      onMouseEnter={() => setHoveredOutletId(outlet.outlet_id)}
+                      onMouseLeave={() => setHoveredOutletId(null)}
+                    >
+                      <span
+                        title={`${outlet.name} (${outlet.outlet_code})`}
+                        className="block max-w-full truncate font-bold"
+                      >
+                        {outlet.name}
+                        {isInactive && (
+                          <span className="ml-2 text-[0.9rem] font-semibold text-[#cf1322]">
+                            (Inactive)
+                          </span>
+                        )}
+                        <span className={`text-[0.95rem] font-normal text-[#b0b6bb] ${isInactive ? "ml-[6px]" : "ml-1"}`}>
+                          {outlet.outlet_code}
                         </span>
-                      )}
-                      <span style={{ fontSize: "0.95rem", color: "#b0b6bb", fontWeight: 400, marginLeft: outlet.outlet_status === false ? "6px" : "4px" }}>{outlet.outlet_code}</span>
-                    </span>
-                    <span title={outlet.address} style={{ fontSize: "0.92rem", color: outlet.outlet_status === false ? "#a8071a" : "#6e7479", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis", wordBreak: "break-word" }}>{outlet.address}</span>
-                    <span title={outlet.owner_name} style={{ fontSize: "0.85rem", color: outlet.outlet_status === false ? "#a8071a" : "#2e3133", display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>{outlet.owner_name}</span>
-                  </button>
-                </li>
-              ))}
+                      </span>
+                      <span
+                        title={outlet.address}
+                        className={`text-[0.92rem] ${isInactive ? "text-[#a8071a]" : "text-[#6e7479]"}`}
+                        style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          wordBreak: "break-word"
+                        }}
+                      >
+                        {outlet.address}
+                      </span>
+                      <span
+                        title={outlet.owner_name}
+                        className={`block max-w-full truncate text-[0.85rem] ${isInactive ? "text-[#a8071a]" : "text-[#2e3133]"}`}
+                      >
+                        {outlet.owner_name}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
           </ul>
         </div>
       )}

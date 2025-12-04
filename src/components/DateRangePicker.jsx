@@ -152,7 +152,7 @@ const DateRangePicker = ({ onChange, initialValue = 'today', disabled = false })
   };
 
   return (
-    <div className="relative w-full inline-block text-left" ref={datePickerRef} style={{ zIndex: 1 }}>
+    <div className="relative z-[1] inline-block w-full text-left" ref={datePickerRef}>
       {/* Dropdown button */}
       <button
         type="button"

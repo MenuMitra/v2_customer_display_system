@@ -3,36 +3,15 @@ import logo from "../assets/logo.png";
 
 const Footer = () => {
   return (
-    <div className="cds-footer-wrap" style={{ textAlign: "center" }}>
-      <div style={{ height: "2px" }} />
-      <div
-        className="cds-footer-social"
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "30px",
-          marginTop: "10px",
-          marginBottom: "10px",
-        }}
-      >
+    <div className="mt-2 border-t border-gray-200 bg-white p-2 text-center">
+      <div className="h-0.5" />
+      <div className="mt-2.5 mb-2.5 flex items-center justify-center gap-[30px]">
         <a
           href="https://www.google.com/"
           target="_blank"
           rel="noopener noreferrer"
-          className="cds-social-btn"
+          className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-gray-200 bg-[#f8f9fa] text-[2.4rem] text-[#55a845] transition-transform duration-150 hover:-translate-y-0.5 hover:text-[#4285F4]"
           aria-label="Google"
-          style={{
-            fontSize: "2.4rem",
-            color: "#55a845",
-            background: "#f8f9fa",
-            borderRadius: "50%",
-            width: "50px",
-            height: "50px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
         >
           <i className="ri-google-fill" />
         </a>
@@ -40,19 +19,8 @@ const Footer = () => {
           href="https://www.facebook.com/people/Menu-Mitra/61565082412478/"
           target="_blank"
           rel="noopener noreferrer"
-          className="cds-social-btn"
+          className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-gray-200 bg-[#f8f9fa] text-[2.4rem] text-[#3388ff] transition-transform duration-150 hover:-translate-y-0.5 hover:text-[#1877F2]"
           aria-label="Facebook"
-          style={{
-            fontSize: "2.4rem",
-            color: "#3388ff",
-            background: "#f8f9fa",
-            borderRadius: "50%",
-            width: "50px",
-            height: "50px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
         >
           <i className="ri-facebook-fill" />
         </a>
@@ -60,19 +28,8 @@ const Footer = () => {
           href="https://www.instagram.com/menumitra/"
           target="_blank"
           rel="noopener noreferrer"
-          className="cds-social-btn"
+          className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-gray-200 bg-[#f8f9fa] text-[2.4rem] text-[#e33161] transition-transform duration-150 hover:-translate-y-0.5 hover:text-[#E4405F]"
           aria-label="Instagram"
-          style={{
-            fontSize: "2.4rem",
-            color: "#e33161",
-            background: "#f8f9fa",
-            borderRadius: "50%",
-            width: "50px",
-            height: "50px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
         >
           <i className="ri-instagram-fill" />
         </a>
@@ -80,35 +37,16 @@ const Footer = () => {
           href="https://www.youtube.com/@menumitra"
           target="_blank"
           rel="noopener noreferrer"
-          className="cds-social-btn"
+          className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-gray-200 bg-[#f8f9fa] text-[2.4rem] text-[#ee2329] transition-transform duration-150 hover:-translate-y-0.5 hover:text-[#FF0000]"
           aria-label="YouTube"
-          style={{
-            fontSize: "2.4rem",
-            color: "#ee2329",
-            background: "#f8f9fa",
-            borderRadius: "50%",
-            width: "50px",
-            height: "50px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
         >
           <i className="ri-youtube-fill" />
         </a>
       </div>
-      <div
-        className="cds-version-row"
-        style={{
-          marginTop: "1px",
-          marginBottom: "8px",
-          color: "#757c8a",
-          fontSize: "0.8rem",
-        }}
-      >
-        <span className="cds-version">Version 2.0</span>
-        <span style={{ margin: "0 3px" }}>|</span>
-        <span className="cds-release-date">23 Sep 2025</span>
+      <div className="mt-[1px] mb-2 flex items-center justify-center gap-2 text-xs text-[#757c8a]">
+        <span className="font-medium">Version 2.0</span>
+        <span className="mx-[3px]">|</span>
+        <span className="font-normal">23 Sep 2025</span>
       </div>
     </div>
   );

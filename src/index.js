@@ -1,13 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import './assets/css/demo.css'
-import './assets/css/core.css'
 import App from './App';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import QueryProvider from './components/QueryProvider';
-
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 // import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';

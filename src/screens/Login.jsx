@@ -19,6 +19,10 @@ function Login() {
   const navigate = useNavigate();
   const otpRefs = [useRef(), useRef(), useRef(), useRef()];
 
+  const isMobileReady = mobileNumber.length === 10;
+  const isOtpReady = !otpValues.some((digit) => !digit);
+  const resendDisabled = timer > 0;
+
   const handleSendOTP = async (e) => {
     e.preventDefault();
     setError("");
@@ -131,78 +135,22 @@ function Login() {
   };
 
   return (
-    <div
-      style={{
-        background: "#f9fafd",
-        minHeight: "100vh",
-        width: "100vw",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center"
-      }}
-    >
-      <div
-        className="login-card shadow-sm"
-        style={{
-          width: "100%",
-          border: "1.8px solid #d1d9e4ff",
-          borderRadius: "18px",
-          background: "#fff",
-          boxSizing: "border-box",
-          padding: "32px 32px 28px 32px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          margin: "11px 0 6px 0"
-        }}
-      >
+    <div className="flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#f9fafd]">
+      <div className="mb-[6px] mt-[11px] flex w-full max-w-[500px] flex-col items-center rounded-[18px] border-[1.8px] border-[#d1d9e4] bg-white px-[32px] pt-[32px] pb-[28px] shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
         {/* Logo, Title, Subtitle Section */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            width: "100%"
-          }}
-        >
+        <div className="flex w-full flex-col items-center">
           <img
             src={logo}
             alt="MenuMitra"
-            style={{ width: "55px", height: "55px", marginBottom: "10px" }}
+            className="mb-[10px] h-[55px] w-[55px] object-contain"
           />
-          <div
-            style={{
-              fontWeight: 600,
-              fontSize: "1.50rem",
-              textAlign: "center",
-              color: "#22242c",
-              marginBottom: "7px"
-            }}
-          >
+          <div className="mb-[7px] text-center text-[1.5rem] font-semibold text-[#22242c]">
             MenuMitra
           </div>
-          <div
-            style={{
-              fontWeight: 600,
-              fontSize: "1.50rem",
-              textAlign: "center",
-              color: "#22242c",
-              marginBottom: "20px"
-            }}
-          >
+          <div className="mb-[20px] text-center text-[1.5rem] font-semibold text-[#22242c]">
             Customer Display System
           </div>
-          <div
-            style={{
-              color: "#666b7c",
-              fontSize: "1rem",
-              textAlign: "center",
-              fontWeight: 400,
-              marginBottom: "22px"
-            }}
-          >
+          <div className="mb-[22px] text-center text-[1rem] font-normal text-[#666b7c]">
             Sign in to continue to your account
           </div>
         </div>
@@ -210,47 +158,33 @@ function Login() {
           id="formAuthentication"
           onSubmit={showOtpInput ? handleVerifyOTP : handleSendOTP}
           noValidate="novalidate"
-          style={{ width: "100%" }}
+          className="w-full"
         >
           {error && (
             <div
-              className="alert alert-danger mb-3"
               role="alert"
-              style={{
-                fontSize: "1rem",
-                marginBottom: "10px",
-                textAlign: "center",
-                marginLeft: "60px",
-                marginRight: "10px"
-              }}
+              className="mb-[10px] rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-base font-medium text-red-600 ml-[60px] mr-[10px]"
             >
               {error}
             </div>
           )}
           {!showOtpInput && (
-            <div style={{ marginBottom: "17px" }}>
+            <div className="mb-[17px]">
               <label
                 htmlFor="mobile"
-                style={{
-                  fontSize: "1.07rem",
-                  fontWeight: 400,
-                  marginBottom: 6,
-                  display: "block",
-                  color: "#22242c"
-                }}
+                className="mb-[6px] block text-[1.07rem] font-normal text-[#22242c]"
               >
-                Mobile Number <span style={{ color: "#cb1227" }}>*</span>
+                Mobile Number <span className="text-[#cb1227]">*</span>
               </label>
               <input
                 type="text"
-                className="form-control"
                 id="mobile"
                 name="mobile"
                 placeholder="Enter your mobile number"
                 value={mobileNumber}
-                onChange={e => {
+                onChange={(e) => {
                   const sanitized = e.target.value.replace(/\D/g, "").slice(0, 10);
-                  if (sanitized.length === 1 && sanitized[0] < '6') {
+                  if (sanitized.length === 1 && sanitized[0] < "6") {
                     setMobileValidationMsg("Mobile number must start with 6-9");
                     return;
                   }
@@ -259,128 +193,92 @@ function Login() {
                 }}
                 autoFocus={!showOtpInput}
                 disabled={showOtpInput}
-                style={{
-                  fontSize: "1.08rem",
-                  padding: "12px",
-                  borderRadius: "8px",
-                  border: "0.6px solid #ddd",
-                  height: "48px",
-                  marginBottom: "12px",
-                  background: showOtpInput ? "#f3f4f7" : "#fff",
-                  color: showOtpInput ? "#a0a4b0" : "#22242c",
-                  transition: "background 0.2s"
-                }}
+                className={`mb-[12px] h-[48px] w-full rounded-[8px] border-[0.6px] px-4 text-[1.08rem] transition-colors duration-200 ${
+                  showOtpInput
+                    ? "border-gray-200 bg-[#f3f4f7] text-[#a0a4b0]"
+                    : "border-[#ddd] bg-white text-[#22242c]"
+                } focus:border-[#178be2] focus:outline-none focus:ring-2 focus:ring-[#178be2]/20`}
               />
               {mobileValidationMsg && (
-                <div style={{ color: '#dc3545', fontSize: '0.95rem', marginTop: '-8px', marginBottom: '8px' }}>
-                  {mobileValidationMsg}
-                </div>
+                <div className="mt-1 text-sm text-red-600">{mobileValidationMsg}</div>
               )}
               <button
-                className="btn btn-primary w-100"
+                className={`mt-[12px] flex w-full items-center justify-center rounded-[10px] py-[15px] text-[1.11rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
+                  isMobileReady && !loading
+                    ? "bg-[#178be2]"
+                    : "cursor-not-allowed bg-[#e5e7eb]"
+                }`}
                 type="submit"
-                disabled={mobileNumber.length !== 10}
-                style={{
-                  padding: "15px 0",
-                  fontSize: "1.11rem",
-                  borderRadius: "10px",
-                  background: mobileNumber.length === 10 && !loading ? "#178be2" : "#e5e7eb",
-                  color: "#fff",
-                  border: "none",
-                  marginTop: "12px",
-                  marginBottom: "0",
-                  fontWeight: 600,
-                  boxShadow: "0 1px 4px rgba(44,51,73,0.07)"
-                }}
+                disabled={!isMobileReady}
               >
                 {"Send OTP"}
               </button>
             </div>
           )}
           {showOtpInput && (
-            <div style={{ marginBottom: "21px" }}>
-              <div
-                className="text-center mb-3"
-                style={{ fontSize: "1rem", fontWeight: 500, color: "#22242c" }}
-              >
+            <div className="mb-[21px]">
+              <div className="mb-3 text-center text-[1rem] font-medium text-[#22242c]">
                 Enter the 4-digit code
               </div>
-              <div className="d-flex justify-content-center mb-4">
-                {otpValues.map((value, index) => (
-                  <input
-                    key={index}
-                    ref={otpRefs[index]}
-                    type="text"
-                    className="input_tags_login form-control text-center full-width-important"
-                    style={{
-                      minHeight: "50px",
-                      maxWidth: "70px",
-                      fontSize: "1.15rem",
-                      margin: "15px",
-                      borderRadius: "8px",
-                      border: otpError ? "1px solid #dc3545" : "1px solid #cbcfd5",
-                      boxShadow: index === activeOtpIndex && !otpError ? "0 0 0 3px rgba(37, 99, 235, 0.35)" : "0 2px 5px rgba(0, 0, 0, 0.1)",
-                      background: "#fff",
-                      transition: "box-shadow 0.2s ease"
-                    }}
-                    value={value}
-                    onChange={e => handleOtpChange(index, e.target.value)}
-                    onKeyDown={e => handleKeyDown(index, e)}
-                    onFocus={() => setActiveOtpIndex(index)}
-                    onBlur={() => setActiveOtpIndex(prev => (prev === index ? null : prev))}
-                    onMouseEnter={() => setActiveOtpIndex(index)}
-                    onMouseLeave={() => setActiveOtpIndex(prev => (prev === index ? null : prev))}
-                    maxLength={1}
-                    autoFocus={index === 0}
-                  />
-                ))}
+              <div className="mb-4 flex flex-wrap items-center justify-center">
+                {otpValues.map((value, index) => {
+                  const isActive = activeOtpIndex === index && !otpError;
+                  return (
+                    <input
+                      key={index}
+                      ref={otpRefs[index]}
+                      type="text"
+                      className={`m-[15px] h-[50px] w-[70px] rounded-[8px] border bg-white text-center text-[1.15rem] transition focus:outline-none ${
+                        otpError ? "border-red-500" : "border-[#cbcfd5]"
+                      } ${
+                        isActive
+                          ? "ring-4 ring-blue-500/40"
+                          : "shadow-[0_2px_5px_rgba(0,0,0,0.1)]"
+                      }`}
+                      value={value}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                      onFocus={() => setActiveOtpIndex(index)}
+                      onBlur={() =>
+                        setActiveOtpIndex((prev) => (prev === index ? null : prev))
+                      }
+                      onMouseEnter={() => setActiveOtpIndex(index)}
+                      onMouseLeave={() =>
+                        setActiveOtpIndex((prev) => (prev === index ? null : prev))
+                      }
+                      maxLength={1}
+                      autoFocus={index === 0}
+                    />
+                  );
+                })}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '200px', marginBottom: '12px' }}>
-                  <button
-                    type="button"
-                    onClick={handleResendOtp}
-                    disabled={timer > 0}
-                    className="text-base font-medium focus:outline-none focus:underline"
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      color: timer > 0 ? '#9ca3af' : '#2563eb',
-                      cursor: timer > 0 ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    {timer > 0 ? `Resend OTP (${timer}s)` : "Resend OTP"}
-                  </button>
-                  <button
-                    onClick={handleBackToLogin}
-                    type="button"
-                    className="text-base font-medium focus:outline-none focus:underline"
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      color: '#2563eb' // Always blue color here
-                    }}
-                  >
-                    Back to login
-                  </button>
-                </div>
-
-
+              <div className="mb-3 flex flex-wrap items-center justify-center gap-[200px]">
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={resendDisabled}
+                  className={`text-base font-medium underline-offset-2 transition ${
+                    resendDisabled
+                      ? "cursor-not-allowed text-[#9ca3af]"
+                      : "text-[#2563eb] hover:underline"
+                  }`}
+                >
+                  {resendDisabled ? `Resend OTP (${timer}s)` : "Resend OTP"}
+                </button>
+                <button
+                  onClick={handleBackToLogin}
+                  type="button"
+                  className="text-base font-medium text-[#2563eb] underline-offset-2 hover:underline"
+                >
+                  Back to login
+                </button>
+              </div>
               <button
-                className="btn btn-primary w-100"
+                className={`flex w-full items-center justify-center rounded-[10px] py-[14px] text-[1.1rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
+                  isOtpReady ? "bg-[#178be2]" : "cursor-not-allowed bg-[#e5e7eb]"
+                }`}
                 type="submit"
-                disabled={otpValues.some(digit => !digit)}
-                style={{
-                  padding: "14px 0",
-                  fontSize: "1.10rem",
-                  borderRadius: "10px",
-                  background: "#178be2",
-                  color: "#fff",
-                  border: "none",
-                  fontWeight: 600,
-                  boxShadow: "0 1px 4px rgba(44,51,73,0.07)"
-                }}
+                disabled={!isOtpReady}
               >
                 {"Verify OTP"}
               </button>
@@ -388,27 +286,17 @@ function Login() {
           )}
         </form>
       </div>
-      <nav
-        style={{
-          display: "flex",
-          gap: "34px",
-          marginTop: "0px",
-          marginBottom: "10px",
-          maxWidth: "440px",
-          width: "100%",
-          justifyContent: "center"
-        }}
-      >
-        <a href="https://menumitra.com/" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
+      <nav className="mb-[10px] flex w-full max-w-[440px] justify-center gap-[34px] text-[0.9rem] font-[450] text-[#757c8a]">
+        <a href="https://menumitra.com/" className="no-underline transition hover:text-[#22242c]">
           Home
         </a>
-        <a href="https://menumitra.com/book-demo" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
+        <a href="https://menumitra.com/book-demo" className="no-underline transition hover:text-[#22242c]">
           Book a demo
         </a>
-        <a href="https://menumitra.com/contact" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
+        <a href="https://menumitra.com/contact" className="no-underline transition hover:text-[#22242c]">
           Contact
         </a>
-        <a href="https://menumitra.com/about" style={{ color: "#757c8a", fontWeight: 450, fontSize: "0.9rem", textDecoration: "none" }}>
+        <a href="https://menumitra.com/about" className="no-underline transition hover:text-[#22242c]">
           Support
         </a>
       </nav>

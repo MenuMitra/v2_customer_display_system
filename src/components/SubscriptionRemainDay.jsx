@@ -112,61 +112,32 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '10px' }}>
-      <div style={{
-        background: '#fff',
-        borderRadius: '8px',
-        boxShadow: '0 1px 4px rgba(80,89,111,0.06)',
-        border: '1px solid #ededed',
-        width: '100%',
-        maxWidth: '360px',
-        margin: '0 auto',
-      }}>
-        <div style={{ padding: '10px 12px' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '8px'
-          }}>
-            <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#222' }}>Subscription Timeline</div>
-            
+    <div className="mb-[10px] flex w-full justify-center">
+      <div className="mx-auto w-full max-w-[360px] rounded-lg border border-[#ededed] bg-white shadow-[0_1px_4px_rgba(80,89,111,0.06)]">
+        <div className="px-3 py-[10px]">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="text-[0.9rem] font-semibold text-[#222]">Subscription Timeline</div>
           </div>
 
-          <div style={{ width: '100%', marginBottom: '6px' }}>
-            <div style={{
-              height: '14px',
-              borderRadius: '8px',
-              background: '#e4e6ea',
-              position: 'relative',
-              overflow: 'hidden',
-              width: '100%',
-            }}>
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                height: '100%',
-                width: `${percentage}%`,
-                background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
-                borderRadius: '8px',
-                transition: 'width 0.3s ease',
-                zIndex: 1,
-              }} />
+          <div className="mb-[6px] w-full">
+            <div className="relative h-[14px] w-full overflow-hidden rounded-lg bg-[#e4e6ea]">
+              <div
+                className="absolute left-0 top-0 h-full rounded-lg transition-[width] duration-300 ease-in-out"
+                style={{
+                  width: `${percentage}%`,
+                  background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
+                  zIndex: 1,
+                }}
+              />
             </div>
           </div>
 
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: '0.75rem',
-            margin: '0 2px',
-            color: '#374151'
-          }}>
-            <span style={{ fontWeight: 500 }}>{completedDays} days completed</span>
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, color }}>{remainingDays} days remaining</span>
+          <div className="mx-[2px] flex justify-between text-[0.75rem] text-[#374151]">
+            <span className="font-medium">{completedDays} days completed</span>
+            <span className="text-[0.8rem] font-semibold" style={{ color }}>
+              {remainingDays} days remaining
+            </span>
           </div>
-
         </div>
       </div>
     </div>
