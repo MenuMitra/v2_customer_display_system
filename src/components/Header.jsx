@@ -340,6 +340,13 @@ function Header({ outletName, onRefresh }) {
 
   return (
     <>
+      {/* Testing Environment Indicator */}
+      {ENV.env === 'testing' && (
+        <div className="w-full bg-red-600 py-0.5 text-center text-xs font-bold text-white">
+           TESTING ENVIRONMENT 
+        </div>
+      )}
+      
       <header className="bg-white shadow-sm">
         <nav className="bg-[#0b1727] py-1 sm:py-1.5 md:py-2 overflow-visible">
           <div className="relative flex w-full items-center justify-between px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 overflow-visible">
