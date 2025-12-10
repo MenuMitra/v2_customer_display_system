@@ -203,7 +203,7 @@ function Login() {
                 <div className="mt-1 text-sm text-red-600">{mobileValidationMsg}</div>
               )}
               <button
-                className={`mt-[12px] flex w-full items-center justify-center rounded-3xl py-[12px] text-[1.11rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
+                className={`mt-[12px] flex w-full items-center justify-center rounded-3xl py-[12px] text-[1.11rem] font-semibold text-gray-600 shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
                   isMobileReady && !loading
                     ? "bg-[#178be2]"
                     : "cursor-not-allowed bg-[#e5e7eb]"
@@ -274,7 +274,7 @@ function Login() {
                 </button>
               </div>
               <button
-                className={`flex w-full items-center justify-center rounded-3xl py-[14px] text-[1.1rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
+                className={`flex w-full items-center justify-center rounded-3xl py-[14px] text-[1.1rem] font-semibold text-gray-600 shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
                   isOtpReady ? "bg-[#178be2]" : "cursor-not-allowed bg-[#e5e7eb]"
                 }`}
                 type="submit"

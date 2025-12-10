@@ -347,8 +347,8 @@ function Header({ outletName, onRefresh }) {
         </div>
       )}
       
-      <header className="bg-white shadow-sm">
-        <nav className="bg-[#0b1727] py-1 sm:py-1.5 md:py-2 overflow-visible">
+      <header className="bg-white shadow-lg relative mt-0 mb-4">
+        <nav className="bg-[#ffffff] py-1 sm:py-1.5 md:py-2 overflow-visible">
           <div className="relative flex w-full items-center justify-between px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 overflow-visible">
             {/* Brand/Logo with Outlet Dropdown */}
             <div className="flex min-w-0 flex-1 items-center gap-1 overflow-visible sm:gap-1.5 md:gap-2">
@@ -357,11 +357,11 @@ function Header({ outletName, onRefresh }) {
                 alt="Menumitra Logo"
                 className="h-7 w-7 flex-shrink-0 object-contain sm:h-8 sm:w-8 md:h-[32px] md:w-[32px] lg:h-[35px] lg:w-[35px]"
               />
-              <span className="hidden flex-shrink-0 text-sm font-bold text-white sm:inline sm:text-base md:text-lg lg:text-xl xl:text-2xl">Menumitra</span>
-              <span className="inline flex-shrink-0 text-sm font-bold text-white sm:hidden">MM</span>
+              <span className="hidden flex-shrink-0 text-sm font-bold text-black sm:inline sm:text-base md:text-lg lg:text-xl xl:text-2xl">Menumitra</span>
+              <span className="inline flex-shrink-0 text-sm font-bold text-black sm:hidden">MM</span>
               <div className="relative z-10 flex-shrink-0 overflow-visible">
                 {singleOutlet ? (
-                  <span className="truncate text-xs font-semibold text-[#9aa0a6] sm:text-sm md:text-base lg:text-lg xl:text-[1.3rem]">
+                  <span className="truncate text-xs font-bold text-black sm:text-sm md:text-base lg:text-lg xl:text-[1.3rem]">
                     {toTitleCase(singleOutletName)}
                   </span>
                 ) : (
@@ -370,7 +370,7 @@ function Header({ outletName, onRefresh }) {
               </div>
             </div>
             <button
-              className="absolute right-2 top-1/2 z-20 inline-flex -translate-y-1/2 items-center justify-center rounded-md border-0 bg-transparent p-1.5 text-white transition-opacity hover:opacity-80 sm:right-3 sm:p-2 md:right-4 md:p-2.5 lg:hidden"
+              className="absolute right-2 top-1/2 z-20 inline-flex -translate-y-1/2 items-center justify-center rounded-md border-0 bg-transparent p-1.5 text-black transition-opacity hover:opacity-80 sm:right-3 sm:p-2 md:right-4 md:p-2.5 lg:hidden"
               type="button"
               aria-label="Toggle navigation"
               aria-expanded={isMobileMenuOpen}
@@ -379,7 +379,7 @@ function Header({ outletName, onRefresh }) {
               <i className="fa-solid fa-bars text-lg sm:text-xl md:text-2xl"></i>
             </button>
             {/* Center Title */}
-            <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 text-xl font-bold text-white lg:block lg:text-3xl xl:text-[36px]">
+            <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 text-xl font-bold text-black lg:block lg:text-3xl xl:text-[36px]">
               C D S
             </div>
 
