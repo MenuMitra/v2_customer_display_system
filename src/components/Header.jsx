@@ -389,14 +389,14 @@ function Header({ outletName, onRefresh }) {
                 <li className="flex w-full flex-col gap-2 sm:gap-2.5 lg:flex-row lg:items-center lg:gap-2">
                 {/* Toggle for Today/All */}
                 <div
-                  className="flex h-9 w-full overflow-hidden rounded-md bg-transparent sm:h-10 sm:rounded-lg md:h-11 lg:w-auto"
+                  className="flex border border-2 rounded-3xl h-9 w-full overflow-hidden bg-transparent sm:h-10 md:h-11 lg:w-auto"
                   role="group"
                 >
                   <button
                     type="button"
                     className={`flex-1 min-w-[60px] rounded-l-3xl text-center text-xs font-semibold leading-9 transition-colors hover:bg-[#f0f0f0] sm:min-w-[70px] rounded-l-3xl sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
                       dateRange === "today"
-                        ? "bg-[#0081ff] text-white hover:bg-[#0070e6]"
+                        ? "bg-[#0081ff] text-white hover:bg-[#d2d4d6]"
                         : isTodayHovered
                         ? "bg-[#f0f0f0] text-[#0081ff]"
                         : "bg-white text-[#0081ff]"
@@ -505,21 +505,21 @@ function Header({ outletName, onRefresh }) {
               <div className="flex items-center justify-center px-4 py-4 text-center text-sm font-semibold text-gray-700 sm:px-5 sm:py-5 sm:text-base md:px-6 md:py-6 md:text-lg">
                 <p className="m-0">Are you sure you want to logout?</p>
               </div>
-              <div className="flex justify-center border-t border-gray-200 px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4 md:px-6 md:pb-6 md:pt-5">
+              <div className="flex justify-center border-t border-gray-200 px-3 pb-4 sm:px-5 sm:pb-5 sm:pt-4 md:px-6 md:pb-6 md:pt-5">
                 <div className="flex w-full items-center justify-between gap-3 sm:gap-4 md:gap-6">
                   <button
                     type="button"
-                    className="flex-1 rounded-3xl border-2 border-gray-400 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-100 sm:px-5 sm:py-2.5 sm:text-base md:px-6 md:py-3 md:text-lg"
+                    className="flex-1 rounded-3xl border-2 border-gray-400 bg-white py-[12px] text-[1.11rem] font-semibold text-gray-700 shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition-colors hover:bg-gray-100 active:bg-gray-100"
                     onClick={() => handleLogoutConfirm(false)}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className="flex-1 flex items-center justify-center rounded-3xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 active:bg-red-800 sm:px-5 sm:py-2.5 sm:text-base md:px-6 md:py-3 md:text-lg"
+                    className="flex-1 flex items-center justify-center rounded-3xl bg-red-600 py-[12px] text-[1.11rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition-colors hover:bg-red-700 active:bg-red-800"
                     onClick={() => handleLogoutConfirm(true)}
                   >
-                    <i className="fa-solid fa-right-from-bracket mr-2 sm:mr-2.5 md:mr-3"></i> Exit Me
+                    <i className="fa-solid fa-right-from-bracket mr-2"></i> Exit Me
                   </button>
                 </div>
               </div>
@@ -531,11 +531,9 @@ function Header({ outletName, onRefresh }) {
       {/* Orders Display Sections */}
       <div className="orders-container h-[calc(100vh-60px)] w-full bg-white p-0 overflow-hidden sm:h-[calc(100vh-70px)] md:h-[calc(100vh-80px)]">
         {!selectedOutlet ? (
-          <div className="h-full flex items-center justify-center">
-            <div className="w-full border-y border-amber-300 bg-amber-100 py-2 text-center text-xs font-medium text-amber-900 sm:py-3 sm:text-sm md:py-4 md:text-base">
+          <div className="w-full border-y border-amber-300 bg-amber-100 py-2 text-center text-xs font-medium text-amber-900 sm:py-3 sm:text-sm md:py-4 md:text-base">
               Please select an outlet to view orders.
             </div>
-          </div>
         ) : (
           <div className="h-full flex flex-col">
             {error && (
