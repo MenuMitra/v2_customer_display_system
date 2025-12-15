@@ -152,7 +152,7 @@ const OutletDropdown = ({ onSelect }) => {
           <div className="bg-[#d1d3d4] p-2">
             <input
               type="search"
-              className="h-12 w-full rounded-3xl border-0 bg-white px-4 text-[1.25rem] outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="h-9 w-full rounded-3xl border-0 bg-white px-4 text-[1.25rem] outline-none focus:ring-2 focus:ring-blue-500/20"
               placeholder="Search outlets..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -204,7 +204,7 @@ const OutletDropdown = ({ onSelect }) => {
                       </span>
                       <span
                         title={outlet.address}
-                        className={`text-[0.92rem] ${isInactive ? "text-[#a8071a]" : "text-[#6e7479]"}`}
+                        className={`text-[0.92rem] capitalize ${isInactive ? "text-[#a8071a]" : "text-[#6e7479]"}`}
                         style={{
                           display: "-webkit-box",
                           WebkitLineClamp: 2,

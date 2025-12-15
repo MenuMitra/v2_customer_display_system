@@ -394,12 +394,12 @@ function Header({ outletName, onRefresh }) {
                 >
                   <button
                     type="button"
-                    className={`flex-1 min-w-[60px] rounded-l-3xl text-center text-xs font-semibold leading-9 transition-colors hover:bg-[#f0f0f0] sm:min-w-[70px] rounded-l-3xl sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
+                    className={`flex-1 min-w-[60px] rounded-l-3xl text-center text-xs font-semibold leading-9 transition-colors sm:min-w-[70px] rounded-l-3xl sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
                       dateRange === "today"
-                        ? "bg-[#0081ff] text-white hover:bg-[#d2d4d6]"
+                        ? "bg-[#0081ff] text-white"
                         : isTodayHovered
                         ? "bg-[#f0f0f0] text-[#0081ff]"
-                        : "bg-white text-[#0081ff]"
+                        : "bg-white text-[#0081ff] hover:bg-[#f0f0f0]"
                     }`}
                     onClick={() => setDateRange("today")}
                     onMouseEnter={() => {
@@ -411,12 +411,12 @@ function Header({ outletName, onRefresh }) {
                   </button>
                   <button
                     type="button"
-                    className={`flex-1 min-w-[60px] rounded-r-3xl border-l border-[#babfc5] text-center text-xs font-semibold leading-9 transition-colors hover:bg-[#f0f0f0] sm:min-w-[70px] rounded-r-3xl sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
+                    className={`flex-1 min-w-[60px] rounded-r-3xl border-l border-[#babfc5] text-center text-xs font-semibold leading-9 transition-colors sm:min-w-[70px] rounded-r-3xl sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
                       dateRange === "all"
-                        ? "bg-[#0081ff] text-white hover:bg-[#0070e6]"
+                        ? "bg-[#0081ff] text-white"
                         : isAllHovered
                         ? "bg-[#f0f0f0] text-[#0081ff]"
-                        : "bg-white text-[#0081ff]"
+                        : "bg-white text-[#0081ff] hover:bg-[#f0f0f0]"
                     }`}
                     onClick={() => setDateRange("all")}
                     onMouseEnter={() => {
@@ -480,7 +480,7 @@ function Header({ outletName, onRefresh }) {
                     onMouseEnter={() => setIsLogoutHovered(true)}
                     onMouseLeave={() => setIsLogoutHovered(false)}
                   >
-                    <i className="fa-solid fa-right-from-bracket text-sm text-black sm:text-base md:text-lg"></i>
+                    <i className="fa-solid fa-right-from-bracket text-sm text-red-600 sm:text-base md:text-lg"></i>
                   </button>
                 </div>
                 </li>
