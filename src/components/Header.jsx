@@ -509,7 +509,7 @@ function Header({ outletName, onRefresh }) {
                 <div className="flex w-full items-center justify-between gap-3 sm:gap-4 md:gap-6">
                   <button
                     type="button"
-                    className="flex-1 rounded-3xl border-2 border-gray-400 bg-white py-[12px] text-[1.11rem] font-semibold text-gray-700 shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition-colors hover:bg-gray-100 active:bg-gray-100"
+                    className="flex-1 py-2 rounded-full border border-1 border-gray-400 text-gray-500 transition-colors font-medium bg-white"
                     onClick={() => handleLogoutConfirm(false)}
                   >
                     Cancel
