@@ -116,7 +116,7 @@ const OutletDropdown = ({ onSelect }) => {
   }, []);
 
   const handleSelect = (outlet) => {
-    if (outlet && outlet.outlet_status === false) {
+    if (outlet && outlet.outlet_status === 0) {
       return;
     }
     setSelected(outlet);
@@ -167,7 +167,7 @@ const OutletDropdown = ({ onSelect }) => {
             )}
             {!loading &&
               filteredOutlets.map((outlet) => {
-                const isInactive = outlet.outlet_status === false;
+                const isInactive = outlet.outlet_status === 0;
                 const isHovered = hoveredOutletId === outlet.outlet_id;
                 return (
                   <li
