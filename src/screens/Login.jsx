@@ -193,7 +193,7 @@ function Login() {
                 }}
                 autoFocus={!showOtpInput}
                 disabled={showOtpInput}
-                className={`mb-[12px] h-[48px] w-full rounded-3xl border-[0.6px] px-4 text-[1.08rem] transition-colors duration-200 ${
+                className={`mb-[12px] h-[48px] w-full rounded-lg border-[0.6px] px-4 text-[1.08rem] transition-colors duration-200 ${
                   showOtpInput
                     ? "border-gray-200 bg-[#f3f4f7] text-[#a0a4b0]"
                     : "border-[#ddd] bg-white text-[#22242c]"
