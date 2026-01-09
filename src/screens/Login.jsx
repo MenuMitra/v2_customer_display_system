@@ -1,14 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { authService } from "../services/authService";
-import Footer from "../components/Footer";
 
 function Login() {
   const [mobileNumber, setMobileNumber] = useState("");
   const [mobileValidationMsg, setMobileValidationMsg] = useState("");
-  // eslint-disable-next-line no-unused-vars
-  const [loading, setLoading] = useState(false);
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otpValues, setOtpValues] = useState(["", "", "", ""]);
   const [error, setError] = useState("");
@@ -136,7 +133,7 @@ function Login() {
 
   return (
     <div className="flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#f9fafd]">
-      <div className="mb-[6px] mt-[11px] flex w-full max-w-[500px] flex-col items-center rounded-[18px] border-[1.8px] border-[#d1d9e4] bg-white px-[32px] pt-[32px] pb-[28px] shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
+      <div className="mb-[6px] mt-[11px] flex w-full max-w-[500px] flex-col items-center rounded-[18px] border-[1.8px] border-[#d1d9e4] bg-white px-[32px] pt-[32px] pb-[32px] shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
         {/* Logo, Title, Subtitle Section */}
         <div className="flex w-full flex-col items-center">
           <img
@@ -204,7 +201,7 @@ function Login() {
               )}
               <button
                 className={`mt-[12px] flex w-full items-center justify-center rounded-3xl py-[12px] text-[1.11rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
-                  isMobileReady && !loading
+                  isMobileReady
                     ? "bg-[#1d4ed8]"
                     : "cursor-not-allowed bg-[#6c757d]"
                 }`}
@@ -285,22 +282,72 @@ function Login() {
             </div>
           )}
         </form>
+
+        {/* Footer Links Section */}
+        <nav className="w-full border-t border-[#e5e7eb] pt-[24px] pb-[20px]">
+          <div className="mb-[20px] flex justify-center gap-[34px] text-[0.9rem] font-[450] text-[#757c8a]">
+            <a href="https://menumitra.com/" className="no-underline transition hover:text-[#22242c]">
+              Home
+            </a>
+            <a href="https://menumitra.com/book-demo" className="no-underline transition hover:text-[#22242c]">
+              Book a demo
+            </a>
+            <a href="https://menumitra.com/contact" className="no-underline transition hover:text-[#22242c]">
+              Contact
+            </a>
+            <a href="https://menumitra.com/about" className="no-underline transition hover:text-[#22242c]">
+              Support
+            </a>
+          </div>
+
+          {/* Social Icons */}
+          <div className="mb-[16px] flex items-center justify-center gap-[30px]">
+            <a
+              href="https://www.google.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-gray-200 bg-[#f8f9fa] text-[2.4rem] text-[#55a845] transition-transform duration-150 hover:-translate-y-0.5 hover:text-[#4285F4]"
+              aria-label="Google"
+            >
+              <i className="ri-google-fill" />
+            </a>
+            <a
+              href="https://www.facebook.com/people/Menu-Mitra/61565082412478/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-gray-200 bg-[#f8f9fa] text-[2.4rem] text-[#3388ff] transition-transform duration-150 hover:-translate-y-0.5 hover:text-[#1877F2]"
+              aria-label="Facebook"
+            >
+              <i className="ri-facebook-fill" />
+            </a>
+            <a
+              href="https://www.instagram.com/menumitra/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-gray-200 bg-[#f8f9fa] text-[2.4rem] text-[#e33161] transition-transform duration-150 hover:-translate-y-0.5 hover:text-[#E4405F]"
+              aria-label="Instagram"
+            >
+              <i className="ri-instagram-fill" />
+            </a>
+            <a
+              href="https://www.youtube.com/@menumitra"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-gray-200 bg-[#f8f9fa] text-[2.4rem] text-[#ee2329] transition-transform duration-150 hover:-translate-y-0.5 hover:text-[#FF0000]"
+              aria-label="YouTube"
+            >
+              <i className="ri-youtube-fill" />
+            </a>
+          </div>
+
+          {/* Version Info */}
+          <div className="flex items-center justify-center gap-2 text-xs text-[#757c8a]">
+            <span className="font-medium">Version 2.1.1</span>
+            <span className="mx-[3px]">|</span>
+            <span className="font-normal">7 sept 2025</span>
+          </div>
+        </nav>
       </div>
-      <nav className="mb-[10px] flex w-full max-w-[440px] justify-center gap-[34px] text-[0.9rem] font-[450] text-[#757c8a]">
-        <a href="https://menumitra.com/" className="no-underline transition hover:text-[#22242c]">
-          Home
-        </a>
-        <a href="https://menumitra.com/book-demo" className="no-underline transition hover:text-[#22242c]">
-          Book a demo
-        </a>
-        <a href="https://menumitra.com/contact" className="no-underline transition hover:text-[#22242c]">
-          Contact
-        </a>
-        <a href="https://menumitra.com/about" className="no-underline transition hover:text-[#22242c]">
-          Support
-        </a>
-      </nav>
-      <Footer />
     </div>
   );
 }
