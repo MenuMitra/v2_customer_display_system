@@ -21,19 +21,21 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
     }
   }
 
-  const fetchSubscriptionData = async (outletId) => {
+  const fetchSubscriptionData = React.useCallback(async (outletId) => {
     if (!outletId || !token) return;
-    
+
     setLoading(true);
     setError('');
     try {
+      const parsed = authData ? JSON.parse(authData) : null;
+      const ownerId = parsed ? (parsed.user_id || parsed.owner_id || 1) : 1;
       const requestPayload = {
         outlet_id: outletId,
         date_filter: dateRange || "today",
-        owner_id: 1,
+        owner_id: ownerId,
         app_source: "admin",
       };
-      
+
       const response = await axios.post(
         `${ENV.V2_COMMON_BASE}/cds_kds_order_listview`,
         requestPayload,
@@ -44,7 +46,7 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
           },
         }
       );
-      
+
       const data = response.data;
       if (data && data.subscription_details) {
         setSubscriptionData(data.subscription_details);
@@ -60,14 +62,14 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authData, dateRange, navigate, token]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (selectedOutlet) {
       fetchSubscriptionData(selectedOutlet.outlet_id);
     }
-  }, [selectedOutlet, dateRange]);
+  }, [selectedOutlet, dateRange, fetchSubscriptionData]);
 
   const calculateTotalDays = (startDate, endDate) => {
     const start = new Date(startDate);

@@ -7,16 +7,15 @@ import foodIcon from "../assets/food_icon.jpg";
 import { handleApiError } from "../utils/sessionUtils";
 import SubscriptionRemainDay from "./SubscriptionRemainDay";
 import { ENV } from "../config/apiConfig";
+import { useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
 
 function Header({ outletName, onRefresh }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [selectedOutlet, setSelectedOutlet] = useState(null);
-  const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
-  // eslint-disable-next-line no-unused-vars
-  const [loading, setLoading] = useState(false);
   const [screenSize, setScreenSize] = useState(window.innerWidth);
   const [singleOutlet, setSingleOutlet] = useState(false);
   const [singleOutletName, setSingleOutletName] = useState("");
@@ -72,8 +71,6 @@ function Header({ outletName, onRefresh }) {
     }
   }
 
-  // Detect if owner has exactly one outlet -> auto-select and hide dropdown
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     try {
       const parsed = authData ? JSON.parse(authData) : null;
@@ -99,110 +96,153 @@ function Header({ outletName, onRefresh }) {
             setSelectedOutlet(only);
           }
         })
-        .catch(() => {});
-    } catch {}
-  }, []);
+        .catch(() => { });
+    } catch { }
+  }, [authData]);
 
-  const fetchOrders = async (outletId) => {
-    if (!outletId) return;
-    setLoading(true);
-    setError("");
+  const fetchOrders = useCallback(async (outletId) => {
+    if (!outletId) return [];
     try {
+      const auth = localStorage.getItem("authData");
+      const parsed = auth ? JSON.parse(auth) : null;
+      const tokenString = parsed ? parsed.access_token : null;
+      const ownerId = parsed ? (parsed.user_id || parsed.owner_id || 1) : 1;
+
+      if (!tokenString) return [];
+
       const requestPayload = {
-        outlet_id: outletId,
+        outlet_id: Number(outletId),
         date_filter: dateRange,
-        owner_id: 1,
+        owner_id: Number(ownerId),
         app_source: "admin",
       };
+
+      console.log("Header: Fetching orders with payload:", requestPayload);
       const response = await axios.post(
         `${ENV.V2_COMMON_BASE}/cds_kds_order_listview`,
         requestPayload,
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${tokenString}`,
           },
         }
       );
       const data = response.data;
-      if (!data) {
-        setOrders([]);
-        setError("No data received");
-      } else {
-        const normalizedBuckets = {
-          placed: [],
-          ongoing: [],
-          completed: [],
-        };
+      console.log("Header: Orders API response:", data);
+      if (!data) return [];
 
-        const toLower = (value) => (typeof value === "string" ? value.toLowerCase() : value);
+      const normalizedBuckets = {
+        placed: [],
+        ongoing: [],
+        completed: [],
+      };
 
-        const pushToBucket = (order, statusKey, allowedStatuses, fallbackToAllItems = false) => {
-          const menuItems = Array.isArray(order.menu_details) ? order.menu_details : [];
-          const filteredItems = menuItems.filter((item) =>
-            allowedStatuses.includes(toLower(item.menu_status))
-          );
-          const itemsToUse =
-            filteredItems.length > 0
-              ? filteredItems
-              : fallbackToAllItems
-              ? menuItems
-              : [];
+      const toLower = (value) => (typeof value === "string" ? value.toLowerCase() : value);
 
-          if (!itemsToUse.length) return;
+      const pushToBucket = (order, statusKey, allowedStatuses, fallbackToAllItems = false) => {
+        const menuItems = Array.isArray(order.menu_details) ? order.menu_details : [];
 
-          normalizedBuckets[statusKey].push({
-            ...order,
-            status: statusKey,
-            menu_details: itemsToUse,
-          });
-        };
+        // If the order itself has a status that matches what we're looking for, or if it has items that match
+        const orderStatus = toLower(order.order_status || order.status);
+        const matchesStatus = allowedStatuses.includes(orderStatus);
 
-        (data.placed_orders || []).forEach((order) => {
-          pushToBucket(order, "placed", ["placed"], true);
+        const filteredItems = menuItems.filter((item) =>
+          allowedStatuses.includes(toLower(item.menu_status))
+        );
+
+        let itemsToUse = filteredItems;
+
+        if (itemsToUse.length === 0 && (fallbackToAllItems || matchesStatus)) {
+          itemsToUse = menuItems;
+        }
+
+        // Even if menu_details is empty, if the order status matches, we should show it in the bucket
+        // unless we strictly only want to show orders with specific items. 
+        // For CDS, we generally want to show the whole order.
+        if (!itemsToUse.length && !matchesStatus) return;
+
+        normalizedBuckets[statusKey].push({
+          ...order,
+          status: statusKey,
+          menu_details: itemsToUse,
         });
+      };
 
-        (data.cooking_orders || []).forEach((order) => {
-          pushToBucket(order, "ongoing", ["cooking", "ongoing", "processing"]);
-          pushToBucket(order, "completed", ["served", "ready", "completed"]);
+      // v2 and v2.2 bucket keys
+      const placedOrders = data.placed_orders || data.placed || [];
+      const cookingOrders = data.cooking_orders || data.cooking || data.ongoing || [];
+      const paidOrders = data.paid_orders || data.paid || data.completed_orders || [];
+      const servedOrders = data.served_orders || data.served || [];
+
+      (placedOrders || []).forEach((order) => {
+        pushToBucket(order, "placed", ["placed"], true);
+      });
+
+      (cookingOrders || []).forEach((order) => {
+        pushToBucket(order, "ongoing", ["cooking", "ongoing", "processing"]);
+        pushToBucket(order, "completed", ["served", "ready", "completed"]);
+      });
+
+      (servedOrders || []).forEach((order) => {
+        pushToBucket(order, "completed", ["served", "ready", "completed"], true);
+      });
+
+      (paidOrders || []).forEach((order) => {
+        pushToBucket(order, "completed", ["served", "ready", "completed", "paid"], true);
+      });
+
+      // Also check for a flat "orders" list if buckets are empty
+      if (normalizedBuckets.placed.length === 0 &&
+        normalizedBuckets.ongoing.length === 0 &&
+        normalizedBuckets.completed.length === 0 &&
+        Array.isArray(data.orders)) {
+        data.orders.forEach(order => {
+          const status = toLower(order.status || order.order_status);
+          if (status === "placed") pushToBucket(order, "placed", ["placed"], true);
+          else if (["cooking", "ongoing", "preparing"].includes(status)) pushToBucket(order, "ongoing", ["cooking", "ongoing", "processing"]);
+          else pushToBucket(order, "completed", ["served", "ready", "completed", "paid"], true);
         });
-
-        (data.paid_orders || []).forEach((order) => {
-          pushToBucket(order, "completed", ["served", "ready", "completed", "paid"], true);
-        });
-
-        const allOrders = [
-          ...normalizedBuckets.placed,
-          ...normalizedBuckets.ongoing,
-          ...normalizedBuckets.completed,
-        ];
-        setOrders(allOrders);
       }
+
+      return [
+        ...normalizedBuckets.placed,
+        ...normalizedBuckets.ongoing,
+        ...normalizedBuckets.completed,
+      ];
     } catch (err) {
-      // Check if it's a session expiration error and handle it
       if (handleApiError(err, navigate)) {
-        return; // Session expired, user will be redirected
+        throw err;
       }
-      setError("Failed to fetch orders. Please try again.");
-      setOrders([]);
-    } finally {
-      setLoading(false);
+      throw new Error("Failed to fetch orders. Please try again.");
     }
-  };
+  }, [dateRange, navigate]);
+
+  const {
+    data: orders = [],
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: ["orders", selectedOutlet?.outlet_id, dateRange],
+    queryFn: () => fetchOrders(selectedOutlet?.outlet_id),
+    enabled: !!selectedOutlet?.outlet_id && !!token,
+    refetchInterval: 2000,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (queryError) {
+      setError(queryError.message);
+    } else {
+      setError("");
+    }
+  }, [queryError]);
 
   // Removed background get_outlet_list heartbeat to avoid repeated calls
 
   const handleOutletSelect = (outlet) => {
     setSelectedOutlet(outlet);
-    fetchOrders(outlet.outlet_id);
   };
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (selectedOutlet) {
-      fetchOrders(selectedOutlet.outlet_id);
-    }
-  }, [dateRange, selectedOutlet]);
 
   useEffect(() => {
     const handleResize = () => setScreenSize(window.innerWidth);
@@ -220,14 +260,6 @@ function Header({ outletName, onRefresh }) {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!selectedOutlet) return;
-    const interval = setInterval(() => {
-      fetchOrders(selectedOutlet.outlet_id);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [selectedOutlet, dateRange]);
   useEffect(() => {
     // Reset scroll on load with a delay to override browser restoration
     const timeoutId = setTimeout(() => {
@@ -253,11 +285,11 @@ function Header({ outletName, onRefresh }) {
       : { header: "h4", orderNumber: "h5", itemCount: "h6" };
 
   const OrderCard = ({ order, showIcon }) => {
-    // Count the number of distinct menu items
-    const menuCount = order.menu_details ? order.menu_details.length : 0;
+    // Count the number of distinct menu items, with fallbacks for v2.2 API
+    const menuCount = order.total_items || order.item_count || (order.menu_details ? order.menu_details.length : 0);
 
     return (
-      <div className="mb-2 rounded-3xl bg-white p-1 shadow-sm transition-shadow hover:shadow-md sm:mb-3 rounder-3xl sm:p-3 md:mb-4 rounder-3xl md:p-2">
+      <div className="mb-2 rounded-3xl bg-white p-1 shadow-sm transition-shadow hover:shadow-md sm:mb-3 sm:p-3 md:mb-4 md:p-2">
         <div className="flex items-center justify-between gap-2">
           <h2 className="truncate text-base font-bold text-gray-900 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
             #{order.order_number}
@@ -343,10 +375,10 @@ function Header({ outletName, onRefresh }) {
       {/* Testing Environment Indicator */}
       {ENV.env === 'testing' && (
         <div className="w-full bg-red-600 py-0.5 text-center text-xs font-bold text-white">
-           TESTING ENVIRONMENT 
+          TESTING ENVIRONMENT
         </div>
       )}
-      
+
       <header className="bg-white shadow-lg relative mt-0 mb-4">
         <nav className="bg-[#ffffff] py-1 sm:py-1.5 md:py-2 overflow-visible">
           <div className="relative flex w-full items-center justify-between px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 overflow-visible">
@@ -387,102 +419,98 @@ function Header({ outletName, onRefresh }) {
             <div className={`absolute left-0 top-full z-30 w-full border-t bg-transparent ${isMobileMenuOpen ? "block" : "hidden"} lg:relative lg:top-0 lg:z-auto lg:mt-0 lg:flex lg:w-auto lg:border-0 lg:bg-transparent`}>
               <ul className="flex w-full flex-col gap-2 px-2 pb-2 pt-2 sm:gap-2.5 sm:px-3 sm:pb-3 sm:pt-3 lg:flex-row lg:items-center lg:justify-end lg:gap-2 lg:px-0 lg:pb-0 lg:pt-0">
                 <li className="flex w-full flex-col gap-2 sm:gap-2.5 lg:flex-row lg:items-center lg:gap-2">
-                {/* Toggle for Today/All */}
-                <div
-                  className="flex border border-2 rounded-3xl h-9 w-full overflow-hidden bg-transparent sm:h-10 md:h-11 lg:w-auto"
-                  role="group"
-                >
-                  <button
-                    type="button"
-                    className={`flex-1 min-w-[60px] rounded-l-3xl text-center text-xs font-semibold leading-9 transition-colors sm:min-w-[70px] rounded-l-3xl sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
-                      dateRange === "today"
+                  {/* Toggle for Today/All */}
+                  <div
+                    className="flex border border-2 rounded-3xl h-9 w-full overflow-hidden bg-transparent sm:h-10 md:h-11 lg:w-auto"
+                    role="group"
+                  >
+                    <button
+                      type="button"
+                      className={`flex-1 min-w-[60px] rounded-l-3xl text-center text-xs font-semibold leading-9 transition-colors sm:min-w-[70px] rounded-l-3xl sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${dateRange === "today"
                         ? "bg-[#0081ff] text-white"
                         : isTodayHovered
-                        ? "bg-[#f0f0f0] text-[#0081ff]"
-                        : "bg-white text-[#0081ff] hover:bg-[#f0f0f0]"
-                    }`}
-                    onClick={() => setDateRange("today")}
-                    onMouseEnter={() => {
-                      if (dateRange !== "today") setIsTodayHovered(true);
-                    }}
-                    onMouseLeave={() => setIsTodayHovered(false)}
-                  >
-                    Today
-                  </button>
-                  <button
-                    type="button"
-                    className={`flex-1 min-w-[60px] rounded-r-3xl border-l border-[#babfc5] text-center text-xs font-semibold leading-9 transition-colors sm:min-w-[70px] rounded-r-3xl sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${
-                      dateRange === "all"
+                          ? "bg-[#f0f0f0] text-[#0081ff]"
+                          : "bg-white text-[#0081ff] hover:bg-[#f0f0f0]"
+                        }`}
+                      onClick={() => setDateRange("today")}
+                      onMouseEnter={() => {
+                        if (dateRange !== "today") setIsTodayHovered(true);
+                      }}
+                      onMouseLeave={() => setIsTodayHovered(false)}
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      className={`flex-1 min-w-[60px] rounded-r-3xl border-l border-[#babfc5] text-center text-xs font-semibold leading-9 transition-colors sm:min-w-[70px] rounded-r-3xl sm:text-sm sm:leading-10 md:min-w-[80px] md:leading-11 lg:flex-none lg:min-w-[90px] lg:px-4 ${dateRange === "all"
                         ? "bg-[#0081ff] text-white"
                         : isAllHovered
-                        ? "bg-[#f0f0f0] text-[#0081ff]"
-                        : "bg-white text-[#0081ff] hover:bg-[#f0f0f0]"
-                    }`}
-                    onClick={() => setDateRange("all")}
-                    onMouseEnter={() => {
-                      if (dateRange !== "all") setIsAllHovered(true);
-                    }}
-                    onMouseLeave={() => setIsAllHovered(false)}
-                  >
-                    All
-                  </button>
-                </div>
-                {/* Action Buttons */}
-                <div className="flex w-full items-center justify-start gap-8 sm:gap-10 md:gap-12 lg:w-auto lg:justify-start lg:gap-3">
-                  {/* Refresh Icon */}
-                  <button
-                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-3xl border-2 border-[#babfc5] bg-white text-black transition-colors hover:bg-gray-50 active:bg-gray-100 sm:h-10 sm:w-10 rounded-3xl md:h-11 md:w-11"
-                    title="Refresh"
-                    onClick={() => {
-                      if (selectedOutlet) {
-                        fetchOrders(selectedOutlet.outlet_id);
-                      }
-                    }}
-                  >
-                    <i className="fa-solid fa-rotate text-sm text-black sm:text-base md:text-lg" />
-                  </button>
-
-                  {/* Fullscreen Icon */}
-                  <button
-                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-3xl border-2 border-[#babfc5] bg-white text-black transition-colors hover:bg-gray-50 active:bg-gray-100 sm:h-10 sm:w-10 rounded-3xl md:h-11 md:w-11 ${
-                      isFullscreenHovered ? "bg-gray-50" : ""
-                    }`}
-                    title="Fullscreen"
-                    onClick={() => {
-                      if (location.pathname === "/orders") {
-                        const container = document.querySelector(".orders-container");
-                        if (!container) return;
-                        if (container.requestFullscreen) {
-                          container.requestFullscreen();
-                        } else if (container.webkitRequestFullscreen) {
-                          container.webkitRequestFullscreen();
-                        } else if (container.mozRequestFullScreen) {
-                          container.mozRequestFullScreen();
-                        } else if (container.msRequestFullscreen) {
-                          container.msRequestFullscreen();
+                          ? "bg-[#f0f0f0] text-[#0081ff]"
+                          : "bg-white text-[#0081ff] hover:bg-[#f0f0f0]"
+                        }`}
+                      onClick={() => setDateRange("all")}
+                      onMouseEnter={() => {
+                        if (dateRange !== "all") setIsAllHovered(true);
+                      }}
+                      onMouseLeave={() => setIsAllHovered(false)}
+                    >
+                      All
+                    </button>
+                  </div>
+                  {/* Action Buttons */}
+                  <div className="flex w-full items-center justify-start gap-8 sm:gap-10 md:gap-12 lg:w-auto lg:justify-start lg:gap-3">
+                    {/* Refresh Icon */}
+                    <button
+                      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-3xl border-2 border-[#babfc5] bg-white text-black transition-colors hover:bg-gray-50 active:bg-gray-100 sm:h-10 sm:w-10 rounded-3xl md:h-11 md:w-11"
+                      title="Refresh"
+                      onClick={() => {
+                        if (selectedOutlet) {
+                          refetch();
                         }
-                      } else {
-                        navigate("/orders");
-                      }
-                    }}
-                    onMouseEnter={() => setIsFullscreenHovered(true)}
-                    onMouseLeave={() => setIsFullscreenHovered(false)}
-                  >
-                    <i className="bx bx-fullscreen text-sm text-black sm:text-base md:text-lg"></i>
-                  </button>
-                  {/* Logout Icon */}
-                  <button
-                    className={`flex h-9 w-9 flex-shrink-0 items-center justify-center border-2 rounded-3xl border-red-500 bg-white text-black transition-colors hover:bg-[#ffe8e8] active:bg-[#ffe0e0] sm:h-10 sm:w-10  rounded-3xl md:h-11 md:w-11 ${
-                      isLogoutHovered ? "bg-[#ffe8e8]" : ""
-                    }`}
-                    title="Logout"
-                    onClick={() => setShowLogoutConfirm(true)}
-                    onMouseEnter={() => setIsLogoutHovered(true)}
-                    onMouseLeave={() => setIsLogoutHovered(false)}
-                  >
-                    <i className="fa-solid fa-right-from-bracket text-sm text-red-600 sm:text-base md:text-lg"></i>
-                  </button>
-                </div>
+                      }}
+                    >
+                      <i className="fa-solid fa-rotate text-sm text-black sm:text-base md:text-lg" />
+                    </button>
+
+                    {/* Fullscreen Icon */}
+                    <button
+                      className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-3xl border-2 border-[#babfc5] bg-white text-black transition-colors hover:bg-gray-50 active:bg-gray-100 sm:h-10 sm:w-10 rounded-3xl md:h-11 md:w-11 ${isFullscreenHovered ? "bg-gray-50" : ""
+                        }`}
+                      title="Fullscreen"
+                      onClick={() => {
+                        if (location.pathname === "/orders") {
+                          const container = document.querySelector(".orders-container");
+                          if (!container) return;
+                          if (container.requestFullscreen) {
+                            container.requestFullscreen();
+                          } else if (container.webkitRequestFullscreen) {
+                            container.webkitRequestFullscreen();
+                          } else if (container.mozRequestFullScreen) {
+                            container.mozRequestFullScreen();
+                          } else if (container.msRequestFullscreen) {
+                            container.msRequestFullscreen();
+                          }
+                        } else {
+                          navigate("/orders");
+                        }
+                      }}
+                      onMouseEnter={() => setIsFullscreenHovered(true)}
+                      onMouseLeave={() => setIsFullscreenHovered(false)}
+                    >
+                      <i className="bx bx-fullscreen text-sm text-black sm:text-base md:text-lg"></i>
+                    </button>
+                    {/* Logout Icon */}
+                    <button
+                      className={`flex h-9 w-9 flex-shrink-0 items-center justify-center border-2 rounded-3xl border-red-500 bg-white text-black transition-colors hover:bg-[#ffe8e8] active:bg-[#ffe0e0] sm:h-10 sm:w-10  rounded-3xl md:h-11 md:w-11 ${isLogoutHovered ? "bg-[#ffe8e8]" : ""
+                        }`}
+                      title="Logout"
+                      onClick={() => setShowLogoutConfirm(true)}
+                      onMouseEnter={() => setIsLogoutHovered(true)}
+                      onMouseLeave={() => setIsLogoutHovered(false)}
+                    >
+                      <i className="fa-solid fa-right-from-bracket text-sm text-red-600 sm:text-base md:text-lg"></i>
+                    </button>
+                  </div>
                 </li>
               </ul>
             </div>
@@ -508,7 +536,7 @@ function Header({ outletName, onRefresh }) {
               <div className="flex justify-center border-t border-gray-200 px-3 pb-4 sm:px-5 sm:pb-5 sm:pt-4 md:px-6 md:pb-6 md:pt-5">
                 <div className="flex w-full items-center justify-between gap-3 sm:gap-4 md:gap-6">
                   <button
-                    type="button" 
+                    type="button"
                     className="flex-1 py-[12px] rounded-full border border-1 border-gray-400 text-gray-500 transition-colors font-medium bg-white hover:bg-gray-200 active:bg-gray-300"
                     onClick={() => handleLogoutConfirm(false)}
                   >
@@ -532,8 +560,8 @@ function Header({ outletName, onRefresh }) {
       <div className="orders-container h-[calc(100vh-60px)] w-full bg-white p-0 overflow-hidden sm:h-[calc(100vh-70px)] md:h-[calc(100vh-80px)]">
         {!selectedOutlet ? (
           <div className="w-full border-y border-amber-300 bg-amber-100 py-2 text-center text-xs font-medium text-amber-900 sm:py-3 sm:text-sm md:py-4 md:text-base">
-              Please select an outlet to view orders.
-            </div>
+            Please select an outlet to view orders.
+          </div>
         ) : (
           <div className="h-full flex flex-col">
             {error && (

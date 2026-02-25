@@ -30,7 +30,7 @@ const OutletDropdown = ({ onSelect }) => {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
     };
-    
+
 
     const token = authData ? authData.access_token : null;
     const userId = authData ? authData.user_id || authData.owner_id : null;
@@ -63,9 +63,9 @@ const OutletDropdown = ({ onSelect }) => {
         if (res.status === 401) {
           return res.json().then(errorData => {
             const errorMessage = errorData?.detail || "";
-            if (errorMessage.includes("Invalid or inactive session") || 
-                errorMessage.includes("401") ||
-                res.status === 401) {
+            if (errorMessage.includes("Invalid or inactive session") ||
+              errorMessage.includes("401") ||
+              res.status === 401) {
               handleSessionExpired();
               return;
             }
@@ -175,13 +175,12 @@ const OutletDropdown = ({ onSelect }) => {
                     className="mb-[14px] list-none px-2"
                   >
                     <button
-                      className={`flex min-h-[6rem] w-full flex-col justify-center gap-1 overflow-hidden rounded-[12px] border-[1.5px] px-4 text-left text-[1.25rem] font-medium transition-all ${
-                        isInactive
-                          ? "cursor-not-allowed border-[#ff4d4f] bg-[#ffecec] text-[#a8071a] opacity-90 shadow-[0_1px_2px_rgba(255,77,79,0.25)]"
-                          : isHovered
+                      className={`flex min-h-[6rem] w-full flex-col justify-center gap-1 overflow-hidden rounded-[12px] border-[1.5px] px-4 text-left text-[1.25rem] font-medium transition-all ${isInactive
+                        ? "cursor-not-allowed border-[#ff4d4f] bg-[#ffecec] text-[#a8071a] opacity-90 shadow-[0_1px_2px_rgba(255,77,79,0.25)]"
+                        : isHovered
                           ? "cursor-pointer border-[#0d6efd] bg-white text-[#222] shadow-[0_4px_16px_rgba(13,110,253,0.18)]"
                           : "cursor-pointer border-transparent bg-white text-[#222] shadow-[0_1px_2px_rgba(68,73,78,0.11)]"
-                      }`}
+                        }`}
                       onClick={() => handleSelect(outlet)}
                       disabled={isInactive}
                       aria-disabled={isInactive}

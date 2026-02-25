@@ -9,17 +9,24 @@ const OutletSelectorDropdown = ({ onSelect }) => {
   const [show, setShow] = useState(false);
   const dropdownRef = useRef(null);
 
+  const authData = localStorage.getItem("authData");
+  let token = null;
+  if (authData) {
+    try {
+      token = JSON.parse(authData).access_token;
+    } catch (err) {
+      console.error("Failed to parse authData", err);
+    }
+  }
+
   useEffect(() => {
-    const token = (() => {
+    const ownerId = (() => {
       try {
-        const authData = localStorage.getItem("authtable")
-        const token = localStorage.getItem("access_token")
-        if(token){
-          return token;
-        }
-        return null
-      }catch {
-        return null;
+        const authData = localStorage.getItem("authData");
+        const parsed = authData ? JSON.parse(authData) : null;
+        return parsed ? (parsed.user_id || parsed.owner_id || 1) : 1;
+      } catch {
+        return 1;
       }
     })();
 
@@ -30,16 +37,16 @@ const OutletSelectorDropdown = ({ onSelect }) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ owner_id: 1, app_source: "admin", outlet_id: 642 }),
+      body: JSON.stringify({ owner_id: ownerId, app_source: "admin", outlet_id: 0 }),
     })
       .then((res) => {
         // Check for 401 status
         if (res.status === 401) {
           return res.json().then(errorData => {
             const errorMessage = errorData?.detail || "";
-            if (errorMessage.includes("Invalid or inactive session") || 
-                errorMessage.includes("401") ||
-                res.status === 401) {
+            if (errorMessage.includes("Invalid or inactive session") ||
+              errorMessage.includes("401") ||
+              res.status === 401) {
               handleSessionExpired();
               return;
             }
@@ -106,11 +113,10 @@ const OutletSelectorDropdown = ({ onSelect }) => {
               return (
                 <li key={outlet.outlet_id}>
                   <button
-                    className={`w-full px-4 py-2 text-left transition-colors hover:bg-blue-50 hover:shadow-[0_4px_16px_rgba(13,110,253,0.18)] hover:border-[#0d6efd] ${
-                      isSelected
-                        ? "font-bold bg-blue-100 text-blue-600 border-[#0d6efd]"
-                        : "border-transparent"
-                    }`}
+                    className={`w-full px-4 py-2 text-left transition-colors hover:bg-blue-50 hover:shadow-[0_4px_16px_rgba(13,110,253,0.18)] hover:border-[#0d6efd] ${isSelected
+                      ? "font-bold bg-blue-100 text-blue-600 border-[#0d6efd]"
+                      : "border-transparent"
+                      }`}
                     onClick={() => handleSelect(outlet)}
                   >
                     <div
