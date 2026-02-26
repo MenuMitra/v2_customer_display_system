@@ -116,8 +116,9 @@ function Header({ outletName, onRefresh }) {
         owner_id: Number(ownerId),
         app_source: "admin",
       };
-
-      console.log("Header: Fetching orders with payload:", requestPayload);
+      if (ENV.env !== "production") {
+        console.log("Header: Fetching orders with payload:", requestPayload);
+      }
       const response = await axios.post(
         `${ENV.V2_COMMON_BASE}/cds_kds_order_listview`,
         requestPayload,
@@ -129,7 +130,9 @@ function Header({ outletName, onRefresh }) {
         }
       );
       const data = response.data;
-      console.log("Header: Orders API response:", data);
+      if (ENV.env !== "production") {
+        console.log("Header: Orders API response:", data);
+      }
       if (!data) return [];
 
       const normalizedBuckets = {
