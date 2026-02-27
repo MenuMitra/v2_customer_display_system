@@ -89,6 +89,15 @@ const OutletSelectorDropdown = ({ onSelect }) => {
     if (onSelect) onSelect(outlet);
   };
 
+  const toTitleCase = (str) => {
+    if (!str) return "";
+    return str
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   return (
     <div
       ref={dropdownRef}
@@ -123,10 +132,13 @@ const OutletSelectorDropdown = ({ onSelect }) => {
                       title={`${outlet.name} (${outlet.outlet_code})`}
                       className="truncate"
                     >
-                      {outlet.name} <span className="text-xs text-gray-500">({outlet.outlet_code})</span>
+                      {toTitleCase(outlet.name)}{" "}
+                      <span className="text-xs text-gray-500">
+                        ({outlet.outlet_code})
+                      </span>
                     </div>
                     <div
-                      className="text-xs text-gray-600"
+                      className="text-xs text-gray-600 capitalize"
                       title={outlet.address}
                       style={{
                         display: "-webkit-box",
@@ -134,7 +146,7 @@ const OutletSelectorDropdown = ({ onSelect }) => {
                         WebkitBoxOrient: "vertical",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        wordBreak: "break-word"
+                        wordBreak: "break-word",
                       }}
                     >
                       {outlet.address}
@@ -143,7 +155,12 @@ const OutletSelectorDropdown = ({ onSelect }) => {
                       className="truncate text-xs text-gray-700"
                       title={outlet.owner_name}
                     >
-                      {outlet.owner_name}
+                      {toTitleCase(outlet.owner_name)}
+                      {outlet.role && (
+                        <span className="ml-1 text-gray-500">
+                          ({toTitleCase(outlet.role)})
+                        </span>
+                      )}
                     </div>
                   </button>
                 </li>

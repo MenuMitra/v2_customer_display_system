@@ -286,7 +286,9 @@ function Header({ outletName, onRefresh }) {
 
   const OrderCard = ({ order, showIcon }) => {
     // Count the number of distinct menu items, with fallbacks for v2.2 API
-    const menuCount = order.total_items || order.item_count || (order.menu_details ? order.menu_details.length : 0);
+    const menuCount = order.menu_count || order.total_items || order.item_count || (order.menu_details ? order.menu_details.length : 0);
+    // Extract combo count from order object if provided by backend
+    const comboCount = order.combo_count || 0;
 
     return (
       <div className="mb-2 rounded-3xl bg-white p-1 shadow-sm transition-shadow hover:shadow-md sm:mb-3 sm:p-3 md:mb-4 md:p-2">
@@ -297,6 +299,11 @@ function Header({ outletName, onRefresh }) {
           <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
             <span className="text-base font-semibold text-gray-700 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
               {menuCount}
+              {comboCount > 0 && (
+                <span className="ml-1 text-blue-600" style={{ fontSize: '0.6em' }}>
+                  (+{comboCount} C)
+                </span>
+              )}
             </span>
             {showIcon && (
               <img
@@ -524,11 +531,18 @@ function Header({ outletName, onRefresh }) {
           <div className="fixed inset-0 z-[1040] bg-black/50" onClick={() => setShowLogoutConfirm(false)} />
           <div className="fixed inset-0 z-[1050] flex items-center justify-center px-4 sm:px-6 md:px-8" tabIndex="-1">
             <div className="w-full max-w-[280px] rounded-lg border-2 border-red-500 bg-white shadow-xl sm:max-w-[320px] sm:rounded-xl md:max-w-[360px] md:rounded-2xl">
-              <div className="flex items-center justify-center border-b border-gray-200 px-4 py-3 sm:px-5 sm:py-4 md:px-6 md:py-5">
+              <div className="relative flex items-center justify-center border-b border-gray-200 px-4 py-3 sm:px-5 sm:py-4 md:px-6 md:py-5">
                 <h5 className="m-0 flex items-center text-center text-sm font-bold text-gray-900 sm:text-base md:text-lg">
                   <i className="fa-solid fa-right-from-bracket mr-2 text-red-600 sm:mr-2.5 md:mr-3"></i>
                   Confirm Logout
                 </h5>
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowLogoutConfirm(false)}
+                >
+                  <i className="fa-solid fa-xmark text-lg"></i>
+                </button>
               </div>
               <div className="flex items-center justify-center px-4 py-4 text-center text-sm font-semibold text-gray-700 sm:px-5 sm:py-5 sm:text-base md:px-6 md:py-6 md:text-lg">
                 <p className="m-0">Are you sure you want to logout?</p>
@@ -537,10 +551,10 @@ function Header({ outletName, onRefresh }) {
                 <div className="flex w-full items-center justify-between gap-3 sm:gap-4 md:gap-6">
                   <button
                     type="button"
-                    className="flex-1 py-[12px] rounded-full border border-1 border-gray-400 text-gray-500 transition-colors font-medium bg-white hover:bg-gray-200 active:bg-gray-300"
+                    className="flex-1 flex items-center justify-center py-[12px] rounded-full border border-1 border-gray-400 text-gray-500 transition-colors font-medium bg-white hover:bg-gray-200 active:bg-gray-300"
                     onClick={() => handleLogoutConfirm(false)}
                   >
-                    Cancel
+                    <i className="fa-solid fa-xmark mr-2"></i> Cancel
                   </button>
                   <button
                     type="button"
