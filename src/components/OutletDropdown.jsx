@@ -23,13 +23,6 @@ const OutletDropdown = ({ onSelect }) => {
       }
     })();
     // eslint-disable-next-line no-unused-vars
-    const toCamelCase = (str) => {
-      return str
-        .toLowerCase()
-        .split(" ")
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-    };
 
 
     const token = authData ? authData.access_token : null;
@@ -126,10 +119,11 @@ const OutletDropdown = ({ onSelect }) => {
   };
   // eslint-disable-next-line no-unused-vars
   const toCamelCase = (str) => {
+    if (!str) return "";
     return str
       .toLowerCase()
       .split(" ")
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
   };
 
@@ -191,7 +185,7 @@ const OutletDropdown = ({ onSelect }) => {
                         title={`${outlet.name} (${outlet.outlet_code})`}
                         className="block max-w-full truncate font-bold"
                       >
-                        {outlet.name}
+                        {toCamelCase(outlet.name)}
                         {isInactive && (
                           <span className="ml-2 text-[0.9rem] font-semibold text-[#cf1322]">
                             (Inactive)
@@ -219,7 +213,12 @@ const OutletDropdown = ({ onSelect }) => {
                         title={outlet.owner_name}
                         className={`block max-w-full truncate text-[0.85rem] ${isInactive ? "text-[#a8071a]" : "text-[#2e3133]"}`}
                       >
-                        {outlet.owner_name}
+                        {toCamelCase(outlet.owner_name)}
+                        {outlet.role && (
+                          <span className="ml-1 text-[#6e7479]">
+                            ({toCamelCase(outlet.role)})
+                          </span>
+                        )}
                       </span>
                     </button>
                   </li>

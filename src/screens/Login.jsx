@@ -51,7 +51,7 @@ function Login() {
     }, 1000);
     return () => clearInterval(id);
   }, [showOtpInput, timer]);
-  
+
 
   // Auto submit when all 4 OTP digits are entered
   useEffect(() => {
@@ -59,7 +59,7 @@ function Login() {
     const allFilled = otpValues.every((d) => d && d.length === 1);
     if (allFilled && !autoSubmitted) {
       setAutoSubmitted(true);
-      handleVerifyOTP({ preventDefault: () => {} });
+      handleVerifyOTP({ preventDefault: () => { } });
     }
     if (!allFilled && autoSubmitted) {
       setAutoSubmitted(false);
@@ -190,21 +190,19 @@ function Login() {
                 }}
                 autoFocus={!showOtpInput}
                 disabled={showOtpInput}
-                className={`mb-[12px] h-[48px] w-full rounded-lg border-[0.6px] px-4 text-[1.08rem] transition-colors duration-200 ${
-                  showOtpInput
+                className={`mb-[12px] h-[48px] w-full rounded-lg border-[0.6px] px-4 text-[1.08rem] transition-colors duration-200 ${showOtpInput
                     ? "border-gray-200 bg-[#f3f4f7] text-[#a0a4b0]"
                     : "border-[#ddd] bg-white text-[#22242c]"
-                } focus:border-[#178be2] focus:outline-none focus:ring-2 focus:ring-[#178be2]/20`}
+                  } focus:border-[#178be2] focus:outline-none focus:ring-2 focus:ring-[#178be2]/20`}
               />
               {mobileValidationMsg && (
                 <div className="mt-1 text-sm text-red-600">{mobileValidationMsg}</div>
               )}
               <button
-                className={`mt-[12px] flex w-full items-center justify-center rounded-3xl py-[12px] text-[1.11rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
-                  isMobileReady
+                className={`mt-[12px] flex w-full items-center justify-center rounded-3xl py-[12px] text-[1.11rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${isMobileReady
                     ? "bg-[#1d4ed8]"
                     : "cursor-not-allowed bg-[#6c757d]"
-                }`}
+                  }`}
                 type="submit"
                 disabled={!isMobileReady}
               >
@@ -225,13 +223,11 @@ function Login() {
                       key={index}
                       ref={otpRefs[index]}
                       type="text"
-                      className={`m-[15px] h-[50px] w-[70px] rounded-3xl border bg-white text-center text-[1.15rem] transition focus:outline-none ${
-                        otpError ? "border-red-500" : "border-[#cbcfd5]"
-                      } ${
-                        isActive
+                      className={`m-[15px] h-[50px] w-[70px] rounded-3xl border bg-white text-center text-[1.15rem] transition focus:outline-none ${otpError ? "border-red-500" : "border-[#cbcfd5]"
+                        } ${isActive
                           ? "ring-4 ring-blue-500/40"
                           : "shadow-[0_2px_5px_rgba(0,0,0,0.1)]"
-                      }`}
+                        }`}
                       value={value}
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
@@ -254,11 +250,10 @@ function Login() {
                   type="button"
                   onClick={handleResendOtp}
                   disabled={resendDisabled}
-                  className={`text-base rounded-3xl font-medium underline-offset-2 transition ${
-                    resendDisabled
+                  className={`text-base rounded-3xl font-medium underline-offset-2 transition ${resendDisabled
                       ? "cursor-not-allowed text-[#9ca3af]"
                       : "text-[#2563eb] hover:underline"
-                  }`}
+                    }`}
                 >
                   {resendDisabled ? `Resend OTP (${timer}s)` : "Resend OTP"}
                 </button>
@@ -271,9 +266,8 @@ function Login() {
                 </button>
               </div>
               <button
-                className={`flex w-full items-center justify-center rounded-3xl py-[14px] text-[1.1rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${
-                  isOtpReady ? "bg-[#1d4ed8]" : "cursor-not-allowed bg-[#6c757d]"
-                }`}
+                className={`flex w-full items-center justify-center rounded-3xl py-[14px] text-[1.1rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${isOtpReady ? "bg-[#1d4ed8]" : "cursor-not-allowed bg-[#6c757d]"
+                  }`}
                 type="submit"
                 disabled={!isOtpReady}
               >
@@ -303,7 +297,7 @@ function Login() {
           {/* Social Icons */}
           <div className="mb-[16px] flex items-center justify-center gap-[30px]">
             <a
-              href="https://www.google.com/"
+              href="https://menumitra.com/"
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-gray-200 bg-[#f8f9fa] text-[2.4rem] text-[#55a845] transition-transform duration-150 hover:-translate-y-0.5 hover:text-[#4285F4]"
