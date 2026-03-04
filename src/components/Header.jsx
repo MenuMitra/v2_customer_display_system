@@ -63,42 +63,46 @@ function Header({ outletName, onRefresh }) {
 
   const authData = localStorage.getItem("authData");
   let token = null;
+  let ownerId = null;
   if (authData) {
     try {
-      token = JSON.parse(authData).access_token;
+      const parsed = JSON.parse(authData);
+      token = parsed.access_token;
+      ownerId = parsed.user_id || parsed.owner_id || null;
     } catch (err) {
       console.error("Failed to parse authData", err);
     }
   }
 
-  useEffect(() => {
-    try {
-      const parsed = authData ? JSON.parse(authData) : null;
-      const accessToken = parsed ? parsed.access_token : null;
-      const ownerId = parsed ? (parsed.user_id || parsed.owner_id || null) : null;
-      if (!accessToken || !ownerId) return;
-
-      fetch(`${ENV.V2_COMMON_BASE}/get_outlet_list`, {
+  const { data: outletsResult } = useQuery({
+    queryKey: ["outlets", ownerId],
+    queryFn: async () => {
+      if (!token || !ownerId) return { outlets: [] };
+      const res = await fetch(`${ENV.V2_COMMON_BASE}/get_outlet_list`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ owner_id: ownerId, app_source: "admin", outlet_id: 0 }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          const outlets = Array.isArray(data?.outlets) ? data.outlets : [];
-          if (outlets.length === 1) {
-            const only = outlets[0];
-            setSingleOutlet(true);
-            setSingleOutletName(only.name || "");
-            setSelectedOutlet(only);
-          }
-        })
-        .catch(() => { });
-    } catch { }
-  }, [authData]);
+      });
+      return res.json();
+    },
+    enabled: !!token && !!ownerId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (outletsResult) {
+      const outlets = Array.isArray(outletsResult.outlets) ? outletsResult.outlets : [];
+      if (outlets.length === 1) {
+        const only = outlets[0];
+        setSingleOutlet(true);
+        setSingleOutletName(only.name || "");
+        setSelectedOutlet(only);
+      }
+    }
+  }, [outletsResult]);
 
   const fetchOrders = useCallback(async (outletId) => {
     if (!outletId) return [];
@@ -300,10 +304,10 @@ function Header({ outletName, onRefresh }) {
             #{order.order_number}
           </h2>
           <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
-            <span className="text-base font-semibold text-gray-700 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
+            <span className="inline-flex items-center text-base font-semibold text-gray-700 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
               {menuCount}
               {comboCount > 0 && (
-                <span className="ml-1 text-blue-600" style={{ fontSize: '0.6em' }}>
+                <span className="ml-1 text-black font-bold" style={{ fontSize: '0.6em' }}>
                   (+{comboCount} C)
                 </span>
               )}

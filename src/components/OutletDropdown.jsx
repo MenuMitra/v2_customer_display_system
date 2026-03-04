@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { handleSessionExpired } from "../utils/sessionUtils";
 import { ENV } from "../config/apiConfig";
+import { useQuery } from "@tanstack/react-query";
 
 const OutletDropdown = ({ onSelect }) => {
   const [outlets, setOutlets] = useState([]);
@@ -12,75 +13,62 @@ const OutletDropdown = ({ onSelect }) => {
   const dropdownRef = useRef(null);
   const [hoveredOutletId, setHoveredOutletId] = useState(null);
 
-  useEffect(() => {
-    // Get user info including user_id and role from localStorage authData
-    const authData = (() => {
-      try {
-        const data = localStorage.getItem("authData");
-        return data ? JSON.parse(data) : null;
-      } catch {
-        return null;
-      }
-    })();
-    // eslint-disable-next-line no-unused-vars
-
-
-    const token = authData ? authData.access_token : null;
-    const userId = authData ? authData.user_id || authData.owner_id : null;
-    // eslint-disable-next-line no-unused-vars
-    const userRole = authData ? authData.role : null; // Adjust based on your auth data schema
-
-    if (!token || !userId) {
-      setOutlets([]);
-      setFilteredOutlets([]);
-      return;
+  // Get user info including user_id and role from localStorage authData
+  const authData = (() => {
+    try {
+      const data = localStorage.getItem("authData");
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
     }
+  })();
 
-    setLoading(true);
+  const token = authData ? authData.access_token : null;
+  const userId = authData ? authData.user_id || authData.owner_id : null;
 
-    // Fetch outlets filtered by userId - backend should filter based on user role and associated outlets
-    fetch(`${ENV.V2_COMMON_BASE}/get_outlet_list`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        owner_id: userId, // pass userId or owner_id logged in
-        app_source: "admin", // or your appropriate source
-        outlet_id: 0, // or null if need all for that user
-      }),
-    })
-      .then((res) => {
-        // Check for 401 status
-        if (res.status === 401) {
-          return res.json().then(errorData => {
-            const errorMessage = errorData?.detail || "";
-            if (errorMessage.includes("Invalid or inactive session") ||
-              errorMessage.includes("401") ||
-              res.status === 401) {
-              handleSessionExpired();
-              return;
-            }
-            throw new Error(errorMessage || "Unauthorized");
-          });
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data) {
-          const outletsData = Array.isArray(data.outlets) ? data.outlets : [];
-          setOutlets(outletsData);
-          setFilteredOutlets(outletsData);
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        setOutlets([]);
-        setFilteredOutlets([]);
-        setLoading(false);
+  const { data: outletsResult, isLoading: outletsLoading } = useQuery({
+    queryKey: ["outlets", userId],
+    queryFn: async () => {
+      if (!token || !userId) return { outlets: [] };
+      const res = await fetch(`${ENV.V2_COMMON_BASE}/get_outlet_list`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          owner_id: userId,
+          app_source: "admin",
+          outlet_id: 0,
+        }),
       });
-  }, []);
+
+      if (res.status === 401) {
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage = errorData?.detail || "";
+        if (errorMessage.includes("Invalid or inactive session") || errorMessage.includes("401")) {
+          handleSessionExpired();
+          return { outlets: [] };
+        }
+        throw new Error(errorMessage || "Unauthorized");
+      }
+      return res.json();
+    },
+    enabled: !!token && !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+  });
+
+  useEffect(() => {
+    if (outletsResult) {
+      const outletsData = Array.isArray(outletsResult.outlets) ? outletsResult.outlets : [];
+      setOutlets(outletsData);
+      setFilteredOutlets(outletsData);
+    }
+  }, [outletsResult]);
+
+  useEffect(() => {
+    setLoading(outletsLoading);
+  }, [outletsLoading]);
 
   useEffect(() => {
     // Filter outlets based on searchTerm (case-insensitive)
