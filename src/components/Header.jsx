@@ -293,9 +293,16 @@ function Header({ outletName, onRefresh }) {
 
   const OrderCard = ({ order, showIcon }) => {
     // Count the number of distinct menu items, with fallbacks for v2.2 API
-    const menuCount = order.menu_count || order.total_items || order.item_count || (order.menu_details ? order.menu_details.length : 0);
+    const rawMenuCount =
+      order.menu_count ??
+      order.total_items ??
+      order.item_count ??
+      (order.menu_details ? order.menu_details.length : 0);
+    const menuCount = Number(rawMenuCount) || 0;
     // Extract combo count from order object if provided by backend
-    const comboCount = order.combo_count || 0;
+    const comboCount = Number(order.combo_count ?? 0) || 0;
+    const showMenuCount = menuCount > 0;
+    const showComboCount = comboCount > 0;
 
     return (
       <div className="mb-2 rounded-3xl bg-white p-1 shadow-sm transition-shadow hover:shadow-md sm:mb-3 sm:p-3 md:mb-4 md:p-2">
@@ -304,14 +311,19 @@ function Header({ outletName, onRefresh }) {
             #{order.order_number}
           </h2>
           <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
-            <span className="inline-flex items-center text-base font-semibold text-gray-700 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
-              {menuCount}
-              {comboCount > 0 && (
-                <span className="ml-1 text-black font-bold" style={{ fontSize: '0.6em' }}>
-                  (+{comboCount} C)
-                </span>
-              )}
-            </span>
+            {(showMenuCount || showComboCount) && (
+              <span className="inline-flex items-center text-base font-semibold text-gray-700 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
+                {showMenuCount && menuCount}
+                {showComboCount && (
+                  <span
+                    className={`${showMenuCount ? "ml-1 text-black font-bold" : ""}`}
+                    style={showMenuCount ? { fontSize: "0.6em" } : undefined}
+                  >
+                    {showMenuCount ? `(+${comboCount} C)` : `${comboCount} C`}
+                  </span>
+                )}
+              </span>
+            )}
             {showIcon && (
               <img
                 src={foodIcon}
