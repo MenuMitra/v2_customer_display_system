@@ -44,7 +44,7 @@ const Footer = () => {
         </a>
       </div>
       <div className="mt-[1px] mb-2 flex items-center justify-center gap-2 text-xs text-[#757c8a]">
-        <span className="font-medium">Version 2.0</span>
+        <span className="font-medium">Version 2.2.0</span>
         <span className="mx-[3px]">|</span>
         <span className="font-normal">23 Sep 2025</span>
       </div>

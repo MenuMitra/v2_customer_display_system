@@ -336,9 +336,9 @@ function Login() {
 
           {/* Version Info */}
           <div className="flex items-center justify-center gap-2 text-xs text-[#757c8a]">
-            <span className="font-medium">Version 2.2</span>
+            <span className="font-medium">Version 2.2.0</span>
             <span className="mx-[3px]">|</span>
-            <span className="font-normal">17 sept 2026</span>
+            <span className="font-normal">17 March 2026</span>
           </div>
         </nav>
       </div>
