@@ -68,7 +68,7 @@ function Header({ outletName, onRefresh }) {
     try {
       const parsed = JSON.parse(authData);
       token = parsed.access_token;
-      ownerId = parsed.user_id || parsed.owner_id || null;
+      ownerId = parsed.owner_id || parsed.user_id || null;
     } catch (err) {
       console.error("Failed to parse authData", err);
     }
@@ -90,6 +90,7 @@ function Header({ outletName, onRefresh }) {
     },
     enabled: !!token && !!ownerId,
     staleTime: 5 * 60 * 1000,
+    refetchOnMount: "always",
   });
 
   useEffect(() => {
@@ -99,7 +100,56 @@ function Header({ outletName, onRefresh }) {
         const only = outlets[0];
         setSingleOutlet(true);
         setSingleOutletName(only.name || "");
-        setSelectedOutlet(only);
+        if (Number(only.outlet_status) === 0) {
+          setSelectedOutlet(null);
+          setError("Cannot select outlet because it is inactive. Please activate the outlet first.");
+          return;
+        }
+        // Avoid auto-selecting outlets that don't have KDS assigned.
+        (async () => {
+          try {
+            const auth = localStorage.getItem("authData");
+            const parsed = auth ? JSON.parse(auth) : null;
+            const tokenString = parsed ? parsed.access_token : null;
+            const ownerId = parsed ? (parsed.owner_id || parsed.user_id || null) : null;
+            if (!tokenString || !ownerId) return;
+
+            const res = await fetch(`${ENV.V2_COMMON_BASE}/cds_kds_order_listview`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${tokenString}`,
+              },
+              body: JSON.stringify({
+                outlet_id: Number(only.outlet_id),
+                date_filter: "today",
+                owner_id: Number(ownerId),
+                app_source: "admin",
+              }),
+            });
+            const data = await res.json().catch(() => ({}));
+            const detail = typeof data?.detail === "string" ? data.detail : "";
+            const detailLower = detail.toLowerCase();
+            const moduleUnassigned =
+              detailLower.includes("kds module has not been assigned") ||
+              detailLower.includes("cds module has not been assigned") ||
+              detailLower.includes("module has not been assigned");
+            const outletInactive = detailLower.includes("outlet is currently inactive");
+            if (moduleUnassigned) {
+              setSelectedOutlet(null);
+              setError("Module has not been assigned for this outlet");
+              return;
+            }
+            if (outletInactive) {
+              setSelectedOutlet(null);
+              setError("Cannot select outlet because it is inactive. Please activate the outlet first.");
+              return;
+            }
+            setSelectedOutlet(only);
+          } catch {
+            setSelectedOutlet(null);
+          }
+        })();
       }
     }
   }, [outletsResult]);
@@ -232,8 +282,18 @@ function Header({ outletName, onRefresh }) {
   } = useQuery({
     queryKey: ["orders", selectedOutlet?.outlet_id, dateRange],
     queryFn: () => fetchOrders(selectedOutlet?.outlet_id),
-    enabled: !!selectedOutlet?.outlet_id && !!token,
-    refetchInterval: 2000,
+    enabled: !!selectedOutlet?.outlet_id && !!token && Number(selectedOutlet?.outlet_status) !== 0,
+    refetchInterval: (data, query) => {
+      const msg = query?.state?.error?.message || "";
+      const msgLower = typeof msg === "string" ? msg.toLowerCase() : "";
+      if (
+        msgLower.includes("outlet is currently inactive") ||
+        msgLower.includes("module has not been assigned")
+      ) {
+        return false;
+      }
+      return 2000;
+    },
     retry: 1,
   });
 
@@ -419,9 +479,11 @@ function Header({ outletName, onRefresh }) {
               <span className="inline flex-shrink-0 text-sm font-bold text-black sm:hidden">MM</span>
               <div className="relative z-10 flex-shrink-0 overflow-visible">
                 {singleOutlet ? (
-                  <span className="truncate text-xs font-bold text-black sm:text-sm md:text-base lg:text-lg xl:text-[1.3rem]">
-                    {toTitleCase(singleOutletName)}
-                  </span>
+                  <div className="flex min-h-[40px] items-center rounded-3xl border-[1.5px] border-[#d0d5dd] bg-white px-4 py-[0.32rem] text-left text-[1.12rem] font-medium text-[#22242c] shadow-sm">
+                    <span className="truncate text-xs font-bold text-black sm:text-sm md:text-base lg:text-lg xl:text-[1.3rem]">
+                      {toTitleCase(singleOutletName)}
+                    </span>
+                  </div>
                 ) : (
                   <OutletDropdown onSelect={handleOutletSelect} />
                 )}

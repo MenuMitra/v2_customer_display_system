@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { handleSessionExpired } from "../utils/sessionUtils";
 import { ENV } from "../config/apiConfig";
 import { useQuery } from "@tanstack/react-query";
@@ -24,12 +24,12 @@ const OutletDropdown = ({ onSelect }) => {
   })();
 
   const token = authData ? authData.access_token : null;
-  const userId = authData ? authData.user_id || authData.owner_id : null;
+  const ownerId = authData ? authData.owner_id || authData.user_id : null;
 
   const { data: outletsResult, isLoading: outletsLoading } = useQuery({
-    queryKey: ["outlets", userId],
+    queryKey: ["outlets", ownerId],
     queryFn: async () => {
-      if (!token || !userId) return { outlets: [] };
+      if (!token || !ownerId) return { outlets: [] };
       const res = await fetch(`${ENV.V2_COMMON_BASE}/get_outlet_list`, {
         method: "POST",
         headers: {
@@ -37,7 +37,8 @@ const OutletDropdown = ({ onSelect }) => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          owner_id: userId,
+          owner_id: ownerId,
+          // Use admin here so we still receive inactive outlets in the list.
           app_source: "admin",
           outlet_id: 0,
         }),
@@ -54,17 +55,73 @@ const OutletDropdown = ({ onSelect }) => {
       }
       return res.json();
     },
-    enabled: !!token && !!userId,
+    enabled: !!token && !!ownerId,
     staleTime: 5 * 60 * 1000, // 5 minutes cache
+    refetchOnMount: "always",
+  });
+
+  const outletsData = useMemo(
+    () => (outletsResult && Array.isArray(outletsResult.outlets) ? outletsResult.outlets : []),
+    [outletsResult]
+  );
+
+  // Determine if each outlet has KDS assigned (cached).
+  // If unassigned, show as disabled and block selection.
+  const { data: kdsStatusByOutletId } = useQuery({
+    queryKey: ["outletKdsStatus", ownerId, outletsData.map((o) => o.outlet_id).join(",")],
+    enabled: !!token && !!ownerId && outletsData.length > 0,
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 0,
+    queryFn: async () => {
+      const map = {};
+      for (const outlet of outletsData) {
+        const outletId = Number(outlet?.outlet_id);
+        if (!outletId) continue;
+        // Don't call listview for inactive outlets; backend returns 400 and we already know it's disabled.
+        if (Number(outlet?.outlet_status) === 0) {
+          map[outletId] = "inactive";
+          continue;
+        }
+        try {
+          const res = await fetch(`${ENV.V2_COMMON_BASE}/cds_kds_order_listview`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              outlet_id: outletId,
+              date_filter: "today",
+              owner_id: Number(ownerId),
+              app_source: "admin",
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          const detail = typeof data?.detail === "string" ? data.detail : "";
+          const detailLower = detail.toLowerCase();
+          const outletInactive = detailLower.includes("outlet is currently inactive");
+          const moduleUnassigned =
+            detailLower.includes("kds module has not been assigned") ||
+            detailLower.includes("cds module has not been assigned") ||
+            detailLower.includes("module has not been assigned");
+          map[outletId] = outletInactive ? "inactive" : moduleUnassigned ? "unassigned" : "assigned";
+        } catch {
+          // Safer default: disable if we can't verify.
+          map[outletId] = "unknown";
+        }
+      }
+      return map;
+    },
   });
 
   useEffect(() => {
     if (outletsResult) {
-      const outletsData = Array.isArray(outletsResult.outlets) ? outletsResult.outlets : [];
       setOutlets(outletsData);
       setFilteredOutlets(outletsData);
     }
-  }, [outletsResult]);
+  }, [outletsResult, outletsData]);
 
   useEffect(() => {
     setLoading(outletsLoading);
@@ -98,6 +155,11 @@ const OutletDropdown = ({ onSelect }) => {
 
   const handleSelect = (outlet) => {
     if (outlet && outlet.outlet_status === 0) {
+      return;
+    }
+    const outletId = Number(outlet?.outlet_id);
+    const kdsStatus = outletId ? kdsStatusByOutletId?.[outletId] : undefined;
+    if (kdsStatus !== "assigned") {
       return;
     }
     setSelected(outlet);
@@ -150,6 +212,13 @@ const OutletDropdown = ({ onSelect }) => {
             {!loading &&
               filteredOutlets.map((outlet) => {
                 const isInactive = outlet.outlet_status === 0;
+                const outletId = Number(outlet?.outlet_id);
+                const kdsStatus = outletId ? kdsStatusByOutletId?.[outletId] : undefined;
+                const isKdsAssigned = kdsStatus === "assigned";
+                const isKdsUnassigned = kdsStatus === "unassigned";
+                const isKdsInactive = kdsStatus === "inactive";
+                const isKdsChecking = !kdsStatus;
+                const isDisabled = isInactive || !isKdsAssigned;
                 const isHovered = hoveredOutletId === outlet.outlet_id;
                 return (
                   <li
@@ -159,13 +228,26 @@ const OutletDropdown = ({ onSelect }) => {
                     <button
                       className={`flex min-h-[6rem] w-full flex-col justify-center gap-1 overflow-hidden rounded-[12px] border-[1.5px] px-4 text-left text-[1.25rem] font-medium transition-all ${isInactive
                         ? "cursor-not-allowed border-[#ff4d4f] bg-[#ffecec] text-[#a8071a] opacity-90 shadow-[0_1px_2px_rgba(255,77,79,0.25)]"
-                        : isHovered
+                        : !isKdsAssigned
+                          ? "cursor-not-allowed border-[#d0d5dd] bg-[#f3f4f6] text-[#6b7280] opacity-90 shadow-[0_1px_2px_rgba(17,24,39,0.08)]"
+                          : isHovered
                           ? "cursor-pointer border-[#0d6efd] bg-white text-[#222] shadow-[0_4px_16px_rgba(13,110,253,0.18)]"
                           : "cursor-pointer border-transparent bg-white text-[#222] shadow-[0_1px_2px_rgba(68,73,78,0.11)]"
                         }`}
                       onClick={() => handleSelect(outlet)}
-                      disabled={isInactive}
-                      aria-disabled={isInactive}
+                      disabled={isDisabled}
+                      aria-disabled={isDisabled}
+                      title={
+                        isInactive
+                          ? "Outlet inactive"
+                          : isKdsInactive
+                            ? "Outlet inactive"
+                          : isKdsUnassigned
+                            ? "Module not assigned"
+                            : isKdsChecking
+                              ? "Checking KDS assignment…"
+                              : undefined
+                      }
                       onMouseEnter={() => setHoveredOutletId(outlet.outlet_id)}
                       onMouseLeave={() => setHoveredOutletId(null)}
                     >
@@ -177,6 +259,11 @@ const OutletDropdown = ({ onSelect }) => {
                         {isInactive && (
                           <span className="ml-2 text-[0.9rem] font-semibold text-[#cf1322]">
                             (Inactive)
+                          </span>
+                        )}
+                        {isKdsUnassigned && (
+                          <span className="ml-2 text-[0.9rem] font-semibold text-[#6b7280]">
+                            (Module not assigned)
                           </span>
                         )}
                         <span className={`text-[0.95rem] font-normal text-[#b0b6bb] ${isInactive ? "ml-[6px]" : "ml-1"}`}>

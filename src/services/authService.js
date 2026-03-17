@@ -96,15 +96,25 @@ export const authService = {
       const result = response.data;
 
       // Store auth data in localStorage
+      const resolvedUserId =
+        result.user_id ?? result.userId ?? result.staff_id ?? result.staffId ?? null;
+      const resolvedOwnerId =
+        result.owner_id ??
+        result.ownerId ??
+        result.partner_id ??
+        result.partnerId ??
+        resolvedUserId;
       localStorage.setItem(
         "authData",
         JSON.stringify({
           name: result.name,
-          user_id: result.user_id,
-          outlet_id: result.outlet_id,
+          user_id: resolvedUserId,
+          owner_id: resolvedOwnerId,
+          outlet_id: result.outlet_id ?? result.outletId ?? null,
           access_token: result.access_token,
           role: result.role,
           device_id: deviceId,
+          device_token: result.device_token ?? result.deviceToken ?? fcmToken,
           expires_at: result.expires_at,
         })
       );
