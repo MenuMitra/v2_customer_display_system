@@ -420,18 +420,28 @@ function Header({ outletName, onRefresh }) {
 
   const handleLogout = async () => {
     try {
+      const parsedAuth = (() => {
+        try {
+          const raw = localStorage.getItem("authData");
+          return raw ? JSON.parse(raw) : null;
+        } catch {
+          return null;
+        }
+      })();
+      const accessToken = parsedAuth?.access_token ?? null;
+
       const logoutData = {
-        user_id: localStorage.getItem("user_id"),
-        role: "cds",
-        app: "cds",
-        device_token:
-          "Entjx4wL350fdkAPvRs2YHKeBgImyElMnk5USx1QYz5UbWGooIt16BLTqGMsCdfzQPn9SKg3YtkQ94KHHqk.cYjkEmN.8nvp-Qyr",
+        user_id: Number(parsedAuth?.user_id ?? parsedAuth?.owner_id ?? 0),
+        role: parsedAuth?.role ?? "admin",
+        app_source: "cds",
       };
 
-      const response = await fetch(`${ENV.COMMON_API_BASE}/logout`, {
+      // CDS logout uses v2.2 common/logout
+      const response = await fetch(`${ENV.V2_COMMON_BASE}/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify(logoutData),
       });
