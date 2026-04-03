@@ -3,11 +3,10 @@ import { handleSessionExpired } from "../utils/sessionUtils";
 import { ENV } from "../config/apiConfig";
 import { useQuery } from "@tanstack/react-query";
 
-const OutletDropdown = ({ onSelect }) => {
+const OutletDropdown = ({ onSelect, selectedOutlet: parentSelectedOutlet }) => {
   const [outlets, setOutlets] = useState([]);
   const [filteredOutlets, setFilteredOutlets] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState(null);
   const [show, setShow] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
@@ -69,7 +68,10 @@ const OutletDropdown = ({ onSelect }) => {
   // If unassigned, show as disabled and block selection.
   const { data: kdsStatusByOutletId } = useQuery({
     queryKey: ["outletKdsStatus", ownerId, outletsData.map((o) => o.outlet_id).join(",")],
-    enabled: !!token && !!ownerId && outletsData.length > 0,
+    // Only check KDS assignment after user opens the dropdown.
+    // This avoids hitting cds_kds_order_listview on initial page load
+    // when the user hasn't selected any outlet.
+    enabled: !!token && !!ownerId && outletsData.length > 0 && show,
     staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -162,7 +164,6 @@ const OutletDropdown = ({ onSelect }) => {
     if (kdsStatus !== "assigned") {
       return;
     }
-    setSelected(outlet);
     setShow(false);
     setSearchTerm("");
     if (onSelect) onSelect(outlet);
@@ -184,7 +185,11 @@ const OutletDropdown = ({ onSelect }) => {
         onClick={() => setShow(!show)}
         className="flex w-full min-h-[40px] items-center justify-between rounded-3xl border-[1.5px] border-[#d0d5dd] bg-white px-4 py-[0.32rem] text-left text-[1.12rem] font-medium text-[#b4b6b9ff] outline-none transition-colors duration-300 ease-in-out hover:border-[#b0b6bb]"
       >
-        <span>{selected ? toCamelCase(selected.name) : "Select Outlet"}</span>
+        <span>
+          {parentSelectedOutlet?.outlet_id != null && parentSelectedOutlet?.name
+            ? toCamelCase(parentSelectedOutlet.name)
+            : "Select Outlet"}
+        </span>
         <span className={`inline-block h-6 w-6 align-middle transition-transform duration-300 ease-in-out ${show ? "rotate-180" : "rotate-0"}`}>
           <svg width="24" height="24" viewBox="0 0 24 24" className="block" xmlns="http://www.w3.org/2000/svg">
             <polyline points="6 9 12 15 18 9" fill="none" stroke="#878a95" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />

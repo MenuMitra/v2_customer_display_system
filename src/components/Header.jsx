@@ -10,11 +10,33 @@ import { ENV } from "../config/apiConfig";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
+const CDS_SELECTED_OUTLET_KEY = "cds_selected_outlet";
+
+function readPersistedSelectedOutlet() {
+  try {
+    const raw = localStorage.getItem(CDS_SELECTED_OUTLET_KEY);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    return o && o.outlet_id != null ? o : null;
+  } catch {
+    return null;
+  }
+}
+
+function writePersistedSelectedOutlet(outlet) {
+  if (!outlet || outlet.outlet_id == null) {
+    localStorage.removeItem(CDS_SELECTED_OUTLET_KEY);
+    return;
+  }
+  localStorage.setItem(CDS_SELECTED_OUTLET_KEY, JSON.stringify(outlet));
+}
+
 function Header({ outletName, onRefresh }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [selectedOutlet, setSelectedOutlet] = useState(null);
+  const [selectedOutlet, setSelectedOutlet] = useState(() => readPersistedSelectedOutlet());
+  const [singleOutletData, setSingleOutletData] = useState(null);
   const [error, setError] = useState("");
   const [screenSize, setScreenSize] = useState(window.innerWidth);
   const [singleOutlet, setSingleOutlet] = useState(false);
@@ -94,63 +116,44 @@ function Header({ outletName, onRefresh }) {
   });
 
   useEffect(() => {
-    if (outletsResult) {
-      const outlets = Array.isArray(outletsResult.outlets) ? outletsResult.outlets : [];
-      if (outlets.length === 1) {
-        const only = outlets[0];
-        setSingleOutlet(true);
-        setSingleOutletName(only.name || "");
-        if (Number(only.outlet_status) === 0) {
-          setSelectedOutlet(null);
-          setError("Cannot select outlet because it is inactive. Please activate the outlet first.");
-          return;
-        }
-        // Avoid auto-selecting outlets that don't have KDS assigned.
-        (async () => {
-          try {
-            const auth = localStorage.getItem("authData");
-            const parsed = auth ? JSON.parse(auth) : null;
-            const tokenString = parsed ? parsed.access_token : null;
-            const ownerId = parsed ? (parsed.owner_id || parsed.user_id || null) : null;
-            if (!tokenString || !ownerId) return;
+    if (!outletsResult) return;
+    const outlets = Array.isArray(outletsResult.outlets) ? outletsResult.outlets : [];
+    const persisted = readPersistedSelectedOutlet();
 
-            const res = await fetch(`${ENV.V2_COMMON_BASE}/cds_kds_order_listview`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${tokenString}`,
-              },
-              body: JSON.stringify({
-                outlet_id: Number(only.outlet_id),
-                date_filter: "today",
-                owner_id: Number(ownerId),
-                app_source: "admin",
-              }),
-            });
-            const data = await res.json().catch(() => ({}));
-            const detail = typeof data?.detail === "string" ? data.detail : "";
-            const detailLower = detail.toLowerCase();
-            const moduleUnassigned =
-              detailLower.includes("kds module has not been assigned") ||
-              detailLower.includes("cds module has not been assigned") ||
-              detailLower.includes("module has not been assigned");
-            const outletInactive = detailLower.includes("outlet is currently inactive");
-            if (moduleUnassigned) {
-              setSelectedOutlet(null);
-              setError("Module has not been assigned for this outlet");
-              return;
-            }
-            if (outletInactive) {
-              setSelectedOutlet(null);
-              setError("Cannot select outlet because it is inactive. Please activate the outlet first.");
-              return;
-            }
-            setSelectedOutlet(only);
-          } catch {
-            setSelectedOutlet(null);
-          }
-        })();
+    if (outlets.length === 1) {
+      const only = outlets[0];
+      setSingleOutlet(true);
+      setSingleOutletName(only.name || "");
+      setSingleOutletData(only);
+      if (
+        persisted &&
+        Number(persisted.outlet_id) === Number(only.outlet_id) &&
+        Number(only.outlet_status) !== 0
+      ) {
+        setSelectedOutlet(only);
+        writePersistedSelectedOutlet(only);
+        setError("");
+      } else {
+        setSelectedOutlet(null);
       }
+      return;
+    }
+
+    setSingleOutlet(false);
+    setSingleOutletData(null);
+
+    if (persisted?.outlet_id != null) {
+      const match = outlets.find((o) => Number(o.outlet_id) === Number(persisted.outlet_id));
+      if (match && Number(match.outlet_status) !== 0) {
+        setSelectedOutlet(match);
+        writePersistedSelectedOutlet(match);
+        setError("");
+      } else {
+        setSelectedOutlet(null);
+        writePersistedSelectedOutlet(null);
+      }
+    } else {
+      setSelectedOutlet(null);
     }
   }, [outletsResult]);
 
@@ -199,30 +202,29 @@ function Header({ outletName, onRefresh }) {
 
       const pushToBucket = (order, statusKey, allowedStatuses, fallbackToAllItems = false) => {
         const menuItems = Array.isArray(order.menu_details) ? order.menu_details : [];
+        const comboItems = Array.isArray(order.combo_details) ? order.combo_details : [];
 
         // If the order itself has a status that matches what we're looking for, or if it has items that match
         const orderStatus = toLower(order.order_status || order.status);
         const matchesStatus = allowedStatuses.includes(orderStatus);
 
-        const filteredItems = menuItems.filter((item) =>
+        const filteredMenuItems = menuItems.filter((item) =>
           allowedStatuses.includes(toLower(item.menu_status))
         );
 
-        let itemsToUse = filteredItems;
+        const filteredComboItems = comboItems.filter((item) =>
+          allowedStatuses.includes(toLower(item.menu_status))
+        );
 
-        if (itemsToUse.length === 0 && (fallbackToAllItems || matchesStatus)) {
-          itemsToUse = menuItems;
-        }
-
-        // Even if menu_details is empty, if the order status matches, we should show it in the bucket
-        // unless we strictly only want to show orders with specific items. 
-        // For CDS, we generally want to show the whole order.
-        if (!itemsToUse.length && !matchesStatus) return;
+        // Even if menu_details/combos are empty, if the order status matches,
+        // we should show it in the bucket (e.g., combo-only orders).
+        if (filteredMenuItems.length === 0 && filteredComboItems.length === 0 && !matchesStatus) return;
 
         normalizedBuckets[statusKey].push({
           ...order,
           status: statusKey,
-          menu_details: itemsToUse,
+          menu_details: filteredMenuItems,
+          combo_details: filteredComboItems,
         });
       };
 
@@ -283,6 +285,9 @@ function Header({ outletName, onRefresh }) {
     queryKey: ["orders", selectedOutlet?.outlet_id, dateRange],
     queryFn: () => fetchOrders(selectedOutlet?.outlet_id),
     enabled: !!selectedOutlet?.outlet_id && !!token && Number(selectedOutlet?.outlet_status) !== 0,
+    staleTime: 2000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     refetchInterval: (data, query) => {
       const msg = query?.state?.error?.message || "";
       const msgLower = typeof msg === "string" ? msg.toLowerCase() : "";
@@ -309,6 +314,7 @@ function Header({ outletName, onRefresh }) {
 
   const handleOutletSelect = (outlet) => {
     setSelectedOutlet(outlet);
+    writePersistedSelectedOutlet(outlet);
   };
 
   useEffect(() => {
@@ -352,15 +358,73 @@ function Header({ outletName, onRefresh }) {
       : { header: "h4", orderNumber: "h5", itemCount: "h6" };
 
   const OrderCard = ({ order, showIcon }) => {
-    // Count the number of distinct menu items, with fallbacks for v2.2 API
-    const rawMenuCount =
-      order.menu_count ??
-      order.total_items ??
-      order.item_count ??
-      (order.menu_details ? order.menu_details.length : 0);
-    const menuCount = Number(rawMenuCount) || 0;
-    // Extract combo count from order object if provided by backend
-    const comboCount = Number(order.combo_count ?? 0) || 0;
+    const menuDetails = Array.isArray(order.menu_details) ? order.menu_details : [];
+    const comboDetails = Array.isArray(order.combo_details) ? order.combo_details : [];
+    const bucketStatus = order.status;
+
+    const COOKING_LIKE = new Set(["cooking", "ongoing", "processing", "preparing"]);
+    const SERVED_LIKE = new Set(["served", "ready", "completed", "paid"]);
+    const PLACED_LIKE = new Set(["placed"]);
+
+    const getBaseQty = (item) => {
+      if (!item || typeof item !== "object") return 1;
+      const candidates = [
+        item.quantity,
+        item.qty,
+        item.menu_qty,
+        item.item_qty,
+        item.itemQty,
+        item.menuQty,
+        item.count,
+      ];
+      const found = candidates.find((v) => v != null && v !== "");
+      const n = Number(found);
+      return Number.isFinite(n) ? (n > 0 ? n : 0) : 1;
+    };
+
+    /**
+     * Per-line quantity for this CDS column, using only this row's data.
+     * Prefer backend cooking_qty / served_qty / total_qty when present so menu vs combo stay isolated.
+     */
+    const qtyForBucketLine = (item) => {
+      if (!item || typeof item !== "object") return 0;
+      const st = typeof item.menu_status === "string" ? item.menu_status.toLowerCase() : "";
+      const cq = item.cooking_qty ?? item.cookingQty;
+      const sq = item.served_qty ?? item.servedQty;
+      const tq = item.total_qty ?? item.totalQty;
+      const base = getBaseQty(item);
+
+      if (bucketStatus === "placed") {
+        if (cq != null && Number.isFinite(Number(cq))) return Math.max(0, Number(cq));
+        if (PLACED_LIKE.has(st) || st === "") return base;
+        return 0;
+      }
+
+      if (bucketStatus === "ongoing") {
+        if (cq != null && Number.isFinite(Number(cq))) return Math.max(0, Number(cq));
+        if (tq != null && sq != null && Number.isFinite(Number(tq)) && Number.isFinite(Number(sq))) {
+          return Math.max(0, Number(tq) - Number(sq));
+        }
+        if (COOKING_LIKE.has(st)) return base;
+        return 0;
+      }
+
+      if (bucketStatus === "completed") {
+        if (sq != null && Number.isFinite(Number(sq))) return Math.max(0, Number(sq));
+        if (SERVED_LIKE.has(st)) return base;
+        return 0;
+      }
+
+      return 0;
+    };
+
+    // Menus and combos: always independent sums — never use order.menu_count / order.combo_count here
+    // (those are order-level and can leak state across lines when one type is served).
+    const derivedMenuQty = menuDetails.reduce((sum, i) => sum + qtyForBucketLine(i), 0);
+    const derivedComboQty = comboDetails.reduce((sum, i) => sum + qtyForBucketLine(i), 0);
+
+    const menuCount = derivedMenuQty;
+    const comboCount = derivedComboQty;
     const showMenuCount = menuCount > 0;
     const showComboCount = comboCount > 0;
 
@@ -414,7 +478,7 @@ function Header({ outletName, onRefresh }) {
           {orders
             .filter((order) => order.status === statusFilter)
             .map((order) => (
-              <OrderCard key={order.order_id} order={order} showIcon={true} />
+              <OrderCard key={`${order.order_id}-${order.status}`} order={order} showIcon={true} />
             ))}
         </>
       )}
@@ -489,13 +553,26 @@ function Header({ outletName, onRefresh }) {
               <span className="inline flex-shrink-0 text-sm font-bold text-black sm:hidden">MM</span>
               <div className="relative z-10 flex-shrink-0 overflow-visible">
                 {singleOutlet ? (
-                  <div className="flex min-h-[40px] items-center rounded-3xl border-[1.5px] border-[#d0d5dd] bg-white px-4 py-[0.32rem] text-left text-[1.12rem] font-medium text-[#22242c] shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!singleOutletData) return;
+                      if (Number(singleOutletData.outlet_status) === 0) {
+                        setError("Cannot select outlet because it is inactive. Please activate the outlet first.");
+                        return;
+                      }
+                      setError("");
+                      setSelectedOutlet(singleOutletData);
+                      writePersistedSelectedOutlet(singleOutletData);
+                    }}
+                    className="flex min-h-[40px] items-center rounded-3xl border-[1.5px] border-[#d0d5dd] bg-white px-4 py-[0.32rem] text-left text-[1.12rem] font-medium text-[#22242c] shadow-sm cursor-pointer"
+                  >
                     <span className="truncate text-xs font-bold text-black sm:text-sm md:text-base lg:text-lg xl:text-[1.3rem]">
                       {toTitleCase(singleOutletName)}
                     </span>
-                  </div>
+                  </button>
                 ) : (
-                  <OutletDropdown onSelect={handleOutletSelect} />
+                  <OutletDropdown onSelect={handleOutletSelect} selectedOutlet={selectedOutlet} />
                 )}
               </div>
             </div>

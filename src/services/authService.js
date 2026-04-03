@@ -95,6 +95,9 @@ export const authService = {
 
       const result = response.data;
 
+      // New session: do not restore another user's CDS outlet selection
+      localStorage.removeItem("cds_selected_outlet");
+
       // Store auth data in localStorage
       const resolvedUserId =
         result.user_id ?? result.userId ?? result.staff_id ?? result.staffId ?? null;
