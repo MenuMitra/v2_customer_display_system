@@ -36,6 +36,7 @@ function Header({ outletName, onRefresh }) {
   const navigate = useNavigate();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [selectedOutlet, setSelectedOutlet] = useState(() => readPersistedSelectedOutlet());
+  const [isSelectionValidated, setIsSelectionValidated] = useState(false);
   const [singleOutletData, setSingleOutletData] = useState(null);
   const [error, setError] = useState("");
   const [screenSize, setScreenSize] = useState(window.innerWidth);
@@ -136,6 +137,7 @@ function Header({ outletName, onRefresh }) {
       } else {
         setSelectedOutlet(null);
       }
+      setIsSelectionValidated(true);
       return;
     }
 
@@ -155,6 +157,7 @@ function Header({ outletName, onRefresh }) {
     } else {
       setSelectedOutlet(null);
     }
+    setIsSelectionValidated(true);
   }, [outletsResult]);
 
   const fetchOrders = useCallback(async (outletId) => {
@@ -281,7 +284,11 @@ function Header({ outletName, onRefresh }) {
   } = useQuery({
     queryKey: ["orders", selectedOutlet?.outlet_id, dateRange],
     queryFn: () => fetchOrders(selectedOutlet?.outlet_id),
-    enabled: !!selectedOutlet?.outlet_id && !!token && Number(selectedOutlet?.outlet_status) !== 0,
+    enabled:
+      isSelectionValidated &&
+      !!selectedOutlet?.outlet_id &&
+      !!token &&
+      Number(selectedOutlet?.outlet_status) !== 0,
     staleTime: 2000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -312,6 +319,7 @@ function Header({ outletName, onRefresh }) {
   const handleOutletSelect = (outlet) => {
     setSelectedOutlet(outlet);
     writePersistedSelectedOutlet(outlet);
+    setIsSelectionValidated(true);
   };
 
   useEffect(() => {
@@ -561,6 +569,7 @@ function Header({ outletName, onRefresh }) {
                       setError("");
                       setSelectedOutlet(singleOutletData);
                       writePersistedSelectedOutlet(singleOutletData);
+                      setIsSelectionValidated(true);
                     }}
                     className="flex min-h-[40px] items-center rounded-3xl border-[1.5px] border-[#d0d5dd] bg-white px-4 py-[0.32rem] text-left text-[1.12rem] font-medium text-[#22242c] shadow-sm cursor-pointer"
                   >
