@@ -11,6 +11,8 @@ const OutletDropdown = ({ onSelect, selectedOutlet: parentSelectedOutlet }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef(null);
   const [hoveredOutletId, setHoveredOutletId] = useState(null);
+  const [moduleStatusByOutletId, setModuleStatusByOutletId] = useState({});
+  const [checkingOutletId, setCheckingOutletId] = useState(null);
 
   // Get user info including user_id and role from localStorage authData
   const authData = (() => {
@@ -64,59 +66,9 @@ const OutletDropdown = ({ onSelect, selectedOutlet: parentSelectedOutlet }) => {
     [outletsResult]
   );
 
-  // Determine if each outlet has KDS assigned (cached).
-  // If unassigned, show as disabled and block selection.
-  const { data: kdsStatusByOutletId } = useQuery({
-    queryKey: ["outletKdsStatus", ownerId, outletsData.map((o) => o.outlet_id).join(",")],
-    // Only check KDS assignment after user opens the dropdown.
-    // This avoids hitting cds_kds_order_listview on initial page load
-    // when the user hasn't selected any outlet.
-    enabled: !!token && !!ownerId && outletsData.length > 0 && show,
-    staleTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    retry: 0,
-    queryFn: async () => {
-      const map = {};
-      for (const outlet of outletsData) {
-        const outletId = Number(outlet?.outlet_id);
-        if (!outletId) continue;
-        // Don't call listview for inactive outlets; backend returns 400 and we already know it's disabled.
-        if (Number(outlet?.outlet_status) === 0) {
-          map[outletId] = "inactive";
-          continue;
-        }
-        try {
-          const res = await fetch(`${ENV.V2_COMMON_BASE}/cds_kds_order_listview`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              outlet_id: outletId,
-              date_filter: "today",
-              owner_id: Number(ownerId),
-              app_source: "admin",
-            }),
-          });
-          const data = await res.json().catch(() => ({}));
-          const detail = typeof data?.detail === "string" ? data.detail : "";
-          const detailLower = detail.toLowerCase();
-          const outletInactive = detailLower.includes("outlet is currently inactive");
-          const moduleUnassigned =
-            detailLower.includes("kds module has not been assigned") ||
-            detailLower.includes("cds module has not been assigned") ||
-            detailLower.includes("module has not been assigned");
-          map[outletId] = outletInactive ? "inactive" : moduleUnassigned ? "unassigned" : "assigned";
-        } catch {
-          // Safer default: disable if we can't verify.
-          map[outletId] = "unknown";
-        }
-      }
-      return map;
-    },
-  });
+  // IMPORTANT: Do not call cds_kds_order_listview on dropdown open.
+  // We validate module assignment only when the user clicks an outlet,
+  // then cache the result in `moduleStatusByOutletId`.
 
   useEffect(() => {
     if (outletsResult) {
@@ -155,14 +107,51 @@ const OutletDropdown = ({ onSelect, selectedOutlet: parentSelectedOutlet }) => {
     };
   }, []);
 
-  const handleSelect = (outlet) => {
+  const handleSelect = async (outlet) => {
     if (outlet && outlet.outlet_status === 0) {
       return;
     }
     const outletId = Number(outlet?.outlet_id);
-    const kdsStatus = outletId ? kdsStatusByOutletId?.[outletId] : undefined;
-    if (kdsStatus !== "assigned") {
-      return;
+    if (!outletId) return;
+
+    const cached = moduleStatusByOutletId[outletId];
+    if (cached === "unassigned" || cached === "inactive") return;
+
+    // Validate module assignment only on click (1 request, cached).
+    if (cached !== "assigned") {
+      try {
+        setCheckingOutletId(outletId);
+        const res = await fetch(`${ENV.V2_COMMON_BASE}/cds_kds_order_listview`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            outlet_id: outletId,
+            date_filter: "today",
+            owner_id: Number(ownerId),
+            app_source: "admin",
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        const detail = typeof data?.detail === "string" ? data.detail : "";
+        const detailLower = detail.toLowerCase();
+        const outletInactive = detailLower.includes("outlet is currently inactive");
+        const moduleUnassigned =
+          detailLower.includes("kds module has not been assigned") ||
+          detailLower.includes("cds module has not been assigned") ||
+          detailLower.includes("module has not been assigned");
+
+        const status = outletInactive ? "inactive" : moduleUnassigned ? "unassigned" : "assigned";
+        setModuleStatusByOutletId((prev) => ({ ...prev, [outletId]: status }));
+        if (status !== "assigned") return;
+      } catch {
+        // On error, do not select (avoid navigating into broken outlet).
+        return;
+      } finally {
+        setCheckingOutletId(null);
+      }
     }
     setShow(false);
     setSearchTerm("");
@@ -218,12 +207,10 @@ const OutletDropdown = ({ onSelect, selectedOutlet: parentSelectedOutlet }) => {
               filteredOutlets.map((outlet) => {
                 const isInactive = outlet.outlet_status === 0;
                 const outletId = Number(outlet?.outlet_id);
-                const kdsStatus = outletId ? kdsStatusByOutletId?.[outletId] : undefined;
-                const isKdsAssigned = kdsStatus === "assigned";
-                const isKdsUnassigned = kdsStatus === "unassigned";
-                const isKdsInactive = kdsStatus === "inactive";
-                const isKdsChecking = !kdsStatus;
-                const isDisabled = isInactive || !isKdsAssigned;
+                const status = outletId ? moduleStatusByOutletId[outletId] : undefined;
+                const isUnassigned = status === "unassigned";
+                const isDisabled = isInactive || isUnassigned || status === "inactive";
+                const isChecking = checkingOutletId === outletId;
                 const isHovered = hoveredOutletId === outlet.outlet_id;
                 return (
                   <li
@@ -233,7 +220,7 @@ const OutletDropdown = ({ onSelect, selectedOutlet: parentSelectedOutlet }) => {
                     <button
                       className={`flex min-h-[6rem] w-full flex-col justify-center gap-1 overflow-hidden rounded-[12px] border-[1.5px] px-4 text-left text-[1.25rem] font-medium transition-all ${isInactive
                         ? "cursor-not-allowed border-[#ff4d4f] bg-[#ffecec] text-[#a8071a] opacity-90 shadow-[0_1px_2px_rgba(255,77,79,0.25)]"
-                        : !isKdsAssigned
+                        : isUnassigned
                           ? "cursor-not-allowed border-[#d0d5dd] bg-[#f3f4f6] text-[#6b7280] opacity-90 shadow-[0_1px_2px_rgba(17,24,39,0.08)]"
                           : isHovered
                           ? "cursor-pointer border-[#0d6efd] bg-white text-[#222] shadow-[0_4px_16px_rgba(13,110,253,0.18)]"
@@ -245,12 +232,10 @@ const OutletDropdown = ({ onSelect, selectedOutlet: parentSelectedOutlet }) => {
                       title={
                         isInactive
                           ? "Outlet inactive"
-                          : isKdsInactive
-                            ? "Outlet inactive"
-                          : isKdsUnassigned
+                          : isUnassigned
                             ? "Module not assigned"
-                            : isKdsChecking
-                              ? "Checking KDS assignment…"
+                            : isChecking
+                              ? "Checking module assignment…"
                               : undefined
                       }
                       onMouseEnter={() => setHoveredOutletId(outlet.outlet_id)}
@@ -266,9 +251,14 @@ const OutletDropdown = ({ onSelect, selectedOutlet: parentSelectedOutlet }) => {
                             (Inactive)
                           </span>
                         )}
-                        {isKdsUnassigned && (
+                        {isUnassigned && (
                           <span className="ml-2 text-[0.9rem] font-semibold text-[#6b7280]">
                             (Module not assigned)
+                          </span>
+                        )}
+                        {isChecking && (
+                          <span className="ml-2 text-[0.9rem] font-semibold text-[#6b7280]">
+                            (Checking…)
                           </span>
                         )}
                         <span className={`text-[0.95rem] font-normal text-[#b0b6bb] ${isInactive ? "ml-[6px]" : "ml-1"}`}>
