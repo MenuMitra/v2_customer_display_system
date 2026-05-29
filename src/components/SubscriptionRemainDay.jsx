@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { handleApiError } from '../utils/sessionUtils';
-import { useNavigate } from 'react-router-dom';
 import { ENV } from '../config/apiConfig';
+import { getBearerHeaders, getCdsOrderListPayload } from '../utils/cdsApi';
 
 const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
   const [subscriptionData, setSubscriptionData] = useState(null);
   // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
 
   const authData = localStorage.getItem("authData");
   let token = null;
@@ -29,21 +28,17 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
     try {
       const parsed = authData ? JSON.parse(authData) : null;
       const ownerId = parsed ? (parsed.user_id || parsed.owner_id || 1) : 1;
-      const requestPayload = {
-        outlet_id: outletId,
-        date_filter: dateRange || "today",
-        owner_id: ownerId,
-        app_source: "admin",
-      };
+      const requestPayload = getCdsOrderListPayload({
+        outletId,
+        ownerId,
+        dateFilter: dateRange || "today",
+      });
 
       const response = await axios.post(
         `${ENV.V2_COMMON_BASE}/cds_kds_order_listview`,
         requestPayload,
         {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: getBearerHeaders(token),
         }
       );
 
@@ -54,7 +49,7 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
         setSubscriptionData(null);
       }
     } catch (err) {
-      if (handleApiError(err, navigate)) {
+      if (handleApiError(err)) {
         return;
       }
       setError("Failed to fetch subscription data");
@@ -62,7 +57,7 @@ const SubscriptionRemainDay = ({ selectedOutlet, dateRange }) => {
     } finally {
       setLoading(false);
     }
-  }, [authData, dateRange, navigate, token]);
+  }, [authData, dateRange, token]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {

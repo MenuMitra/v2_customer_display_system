@@ -7,6 +7,13 @@ import foodIcon from "../assets/food_icon.jpg";
 import { handleApiError } from "../utils/sessionUtils";
 import SubscriptionRemainDay from "./SubscriptionRemainDay";
 import { ENV } from "../config/apiConfig";
+import {
+  checkApiSessionError,
+  getBearerHeaders,
+  getCdsOrderListPayload,
+  getOutletListPayload,
+  getStoredAuth,
+} from "../utils/cdsApi";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
@@ -84,18 +91,9 @@ function Header({ outletName, onRefresh }) {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, []);
 
-  const authData = localStorage.getItem("authData");
-  let token = null;
-  let ownerId = null;
-  if (authData) {
-    try {
-      const parsed = JSON.parse(authData);
-      token = parsed.access_token;
-      ownerId = parsed.owner_id || parsed.user_id || null;
-    } catch (err) {
-      console.error("Failed to parse authData", err);
-    }
-  }
+  const storedAuth = getStoredAuth();
+  const token = storedAuth?.access_token ?? null;
+  const ownerId = storedAuth?.owner_id || storedAuth?.user_id || null;
 
   const { data: outletsResult } = useQuery({
     queryKey: ["outlets", ownerId],
@@ -103,13 +101,18 @@ function Header({ outletName, onRefresh }) {
       if (!token || !ownerId) return { outlets: [] };
       const res = await fetch(`${ENV.V2_COMMON_BASE}/get_outlet_list`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ owner_id: ownerId, app_source: "admin", outlet_id: 0 }),
+        headers: getBearerHeaders(token),
+        body: JSON.stringify(getOutletListPayload(ownerId)),
       });
-      return res.json();
+      const data = await res.json().catch(() => ({}));
+      const sessionError = checkApiSessionError(data, res.status);
+      if (sessionError) {
+        throw new Error(sessionError);
+      }
+      if (!res.ok) {
+        throw new Error(data?.message || data?.detail || "Failed to load outlets");
+      }
+      return data;
     },
     enabled: !!token && !!ownerId,
     staleTime: 5 * 60 * 1000,
@@ -170,12 +173,11 @@ function Header({ outletName, onRefresh }) {
 
       if (!tokenString) return [];
 
-      const requestPayload = {
-        outlet_id: Number(outletId),
-        date_filter: dateRange,
-        owner_id: Number(ownerId),
-        app_source: "admin",
-      };
+      const requestPayload = getCdsOrderListPayload({
+        outletId,
+        ownerId,
+        dateFilter: dateRange,
+      });
 
       console.log("Header: Fetching orders with payload:", requestPayload);
       const response = await axios.post(
@@ -228,7 +230,7 @@ function Header({ outletName, onRefresh }) {
         });
       };
 
-      // v2 and v2.2 bucket keys
+      // v2 and v2.3 bucket keys
       const placedOrders = data.placed_orders || data.placed || [];
       const cookingOrders = data.cooking_orders || data.cooking || data.ongoing || [];
       const paidOrders = data.paid_orders || data.paid || data.completed_orders || [];
@@ -270,12 +272,16 @@ function Header({ outletName, onRefresh }) {
         ...normalizedBuckets.completed,
       ];
     } catch (err) {
-      if (handleApiError(err, navigate)) {
-        throw err;
+      if (handleApiError(err)) {
+        const msg =
+          err.response?.data?.message ||
+          err.response?.data?.detail ||
+          "Session expired. Please sign in again.";
+        throw new Error(msg);
       }
       throw new Error("Failed to fetch orders. Please try again.");
     }
-  }, [dateRange, navigate]);
+  }, [dateRange]);
 
   const {
     data: orders = [],
@@ -508,7 +514,7 @@ function Header({ outletName, onRefresh }) {
         app_source: "cds",
       };
 
-      // CDS logout uses v2.2 common/logout
+      // CDS logout uses v2.3 common/logout
       const response = await fetch(`${ENV.V2_COMMON_BASE}/logout`, {
         method: "POST",
         headers: {

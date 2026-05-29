@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { handleSessionExpired } from "../utils/sessionUtils";
 import { ENV } from "../config/apiConfig";
+import {
+  checkApiSessionError,
+  getBearerHeaders,
+  getCdsOrderListPayload,
+  getOutletListPayload,
+} from "../utils/cdsApi";
 import { useQuery } from "@tanstack/react-query";
 
 const OutletDropdown = ({ onSelect, selectedOutlet: parentSelectedOutlet }) => {
@@ -33,28 +38,19 @@ const OutletDropdown = ({ onSelect, selectedOutlet: parentSelectedOutlet }) => {
       if (!token || !ownerId) return { outlets: [] };
       const res = await fetch(`${ENV.V2_COMMON_BASE}/get_outlet_list`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          owner_id: ownerId,
-          // Use admin here so we still receive inactive outlets in the list.
-          app_source: "admin",
-          outlet_id: 0,
-        }),
+        headers: getBearerHeaders(token),
+        body: JSON.stringify(getOutletListPayload(ownerId)),
       });
 
-      if (res.status === 401) {
-        const errorData = await res.json().catch(() => ({}));
-        const errorMessage = errorData?.detail || "";
-        if (errorMessage.includes("Invalid or inactive session") || errorMessage.includes("401")) {
-          handleSessionExpired();
-          return { outlets: [] };
-        }
-        throw new Error(errorMessage || "Unauthorized");
+      const data = await res.json().catch(() => ({}));
+      const sessionError = checkApiSessionError(data, res.status);
+      if (sessionError) {
+        throw new Error(sessionError);
       }
-      return res.json();
+      if (!res.ok) {
+        throw new Error(data?.message || data?.detail || "Unauthorized");
+      }
+      return data;
     },
     enabled: !!token && !!ownerId,
     staleTime: 5 * 60 * 1000, // 5 minutes cache
@@ -123,16 +119,14 @@ const OutletDropdown = ({ onSelect, selectedOutlet: parentSelectedOutlet }) => {
         setCheckingOutletId(outletId);
         const res = await fetch(`${ENV.V2_COMMON_BASE}/cds_kds_order_listview`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            outlet_id: outletId,
-            date_filter: "today",
-            owner_id: Number(ownerId),
-            app_source: "admin",
-          }),
+          headers: getBearerHeaders(token),
+          body: JSON.stringify(
+            getCdsOrderListPayload({
+              outletId,
+              ownerId,
+              dateFilter: "today",
+            })
+          ),
         });
         const data = await res.json().catch(() => ({}));
         const detail = typeof data?.detail === "string" ? data.detail : "";
