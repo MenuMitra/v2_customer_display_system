@@ -1,16 +1,45 @@
 // Utility functions for session management
+import { authService } from "../services/authService";
+
+const AUTH_DATA_KEY = "authData";
+
+export const getAuthData = () => {
+  try {
+    const raw = localStorage.getItem(AUTH_DATA_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const isAccessTokenExpired = (authData) => {
+  const raw = authData?.expires_at ?? authData?.expires_on;
+  if (!raw) return false;
+
+  const expires = new Date(raw);
+  if (!Number.isFinite(expires.getTime())) {
+    return false;
+  }
+
+  return expires <= new Date();
+};
 
 /**
  * Handles session expiration by clearing localStorage and redirecting to login
  */
 export const handleSessionExpired = () => {
-  // Clear all local storage
-  localStorage.clear();
-  
-  // Dispatch logout event for any components listening
-  window.dispatchEvent(new CustomEvent('logout'));
-  
-  // Redirect to login page
+  const deviceId = localStorage.getItem("cds_device_id");
+  const rememberedMobile = localStorage.getItem("cds_remember_mobile");
+
+  localStorage.removeItem(AUTH_DATA_KEY);
+  localStorage.removeItem("cds_selected_outlet");
+
+  if (deviceId) localStorage.setItem("cds_device_id", deviceId);
+  if (rememberedMobile) {
+    localStorage.setItem("cds_remember_mobile", rememberedMobile);
+  }
+
+  window.dispatchEvent(new CustomEvent("logout"));
   window.location.href = "/login";
 };
 
@@ -23,22 +52,36 @@ export const isSessionExpiredError = (error) => {
   if (!error.response || error.response.status !== 401) {
     return false;
   }
-  
-  const errorMessage = error.response?.data?.detail || "";
-  return errorMessage.includes("Invalid or inactive session") || 
-         errorMessage.includes("401") ||
-         error.response.status === 401;
+
+  const errorMessage =
+    error.response?.data?.detail ||
+    error.response?.data?.message ||
+    "";
+  const lower = errorMessage.toLowerCase();
+  return (
+    lower.includes("invalid or inactive session") ||
+    lower.includes("error with token") ||
+    lower.includes("session expired") ||
+    lower.includes("invalid token")
+  );
 };
 
 /**
- * Handles API errors and redirects to login if session is expired
- * @param {Object} error - The error object from axios
- * @param {Function} navigate - React Router navigate function (optional)
+ * Attempts refresh when access token is expired but refresh_token exists.
+ * @returns {Promise<boolean>} true if session is still valid
  */
-export const handleApiError = (error, navigate = null) => {
-  if (isSessionExpiredError(error)) {
-    handleSessionExpired();
-    return true; // Indicates session was expired
-  }
-  return false; // Not a session expiration error
+export const ensureValidSession = async () => {
+  const auth = getAuthData();
+  if (!auth?.access_token) return false;
+  if (!isAccessTokenExpired(auth)) return true;
+  if (!auth.refresh_token) return true;
+
+  const refreshed = await authService.refreshAccessToken();
+  return refreshed.success;
 };
+
+/**
+ * Returns true when an axios error indicates an expired/invalid session.
+ * Does not clear storage or redirect — callers decide how to handle UI.
+ */
+export const handleApiError = (error) => isSessionExpiredError(error);

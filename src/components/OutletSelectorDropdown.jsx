@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { handleSessionExpired } from "../utils/sessionUtils";
 import { ENV } from "../config/apiConfig";
+import { getBearerHeaders, getOutletListPayload } from "../utils/cdsApi";
 
 const OutletSelectorDropdown = ({ onSelect }) => {
   const [outlets, setOutlets] = useState([]);
@@ -33,11 +34,8 @@ const OutletSelectorDropdown = ({ onSelect }) => {
     setLoading(true);
     fetch(`${ENV.API_BASE}/common/partner/outletlist`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ owner_id: ownerId, app_source: "admin", outlet_id: 0 }),
+      headers: getBearerHeaders(token),
+      body: JSON.stringify(getOutletListPayload(ownerId)),
     })
       .then((res) => {
         // Check for 401 status

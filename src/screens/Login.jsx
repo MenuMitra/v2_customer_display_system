@@ -1,96 +1,180 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { authService } from "../services/authService";
+import PinInput from "../components/PinInput";
+import { getStoredAuth } from "../utils/cdsApi";
+
+const EMPTY_PIN = ["", "", "", ""];
+
+/** @typedef {'signin' | 'pin' | 'otp' | 'create_pin' | 'confirm_pin'} AuthStep */
+/** @typedef {'setup' | 'forgot' | null} OtpContext */
 
 function Login() {
+  const navigate = useNavigate();
+
   const [mobileNumber, setMobileNumber] = useState("");
   const [mobileValidationMsg, setMobileValidationMsg] = useState("");
-  const [showOtpInput, setShowOtpInput] = useState(false);
-  const [otpValues, setOtpValues] = useState(["", "", "", ""]);
+  const [pinValues, setPinValues] = useState(EMPTY_PIN);
+  const [confirmPinValues, setConfirmPinValues] = useState(EMPTY_PIN);
+  const [otpValues, setOtpValues] = useState(EMPTY_PIN);
+  const [showPin, setShowPin] = useState(false);
+
+  const [step, setStep] = useState(/** @type {AuthStep} */ ("signin"));
+  const [otpContext, setOtpContext] = useState(/** @type {OtpContext} */ (null));
+  const [setupToken, setSetupToken] = useState(null);
+
   const [error, setError] = useState("");
-  const [timer, setTimer] = useState(0); // seconds left to allow resend
+  const [pinError, setPinError] = useState(false);
   const [otpError, setOtpError] = useState(false);
+  const [activePinIndex, setActivePinIndex] = useState(null);
   const [activeOtpIndex, setActiveOtpIndex] = useState(null);
+  const [timer, setTimer] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [autoSubmitted, setAutoSubmitted] = useState(false);
-  const navigate = useNavigate();
-  const otpRefs = [useRef(), useRef(), useRef(), useRef()];
+
+  useEffect(() => {
+    const auth = getStoredAuth();
+    if (auth?.access_token) {
+      navigate("/orders", { replace: true });
+    }
+  }, [navigate]);
 
   const isMobileReady = mobileNumber.length === 10;
-  const isOtpReady = !otpValues.some((digit) => !digit);
+  const isPinReady = pinValues.every((d) => d.length === 1);
+  const isConfirmPinReady = confirmPinValues.every((d) => d.length === 1);
+  const isOtpReady = otpValues.every((d) => d.length === 1);
   const resendDisabled = timer > 0;
 
-  const handleSendOTP = async (e) => {
+  const resetPinFields = () => {
+    setPinValues(EMPTY_PIN);
+    setConfirmPinValues(EMPTY_PIN);
+    setPinError(false);
+  };
+
+  const goToSignIn = () => {
+    setStep("signin");
+    setOtpContext(null);
+    setSetupToken(null);
+    setOtpValues(EMPTY_PIN);
+    resetPinFields();
+    setError("");
+    setOtpError(false);
+    setShowPin(false);
+    setAutoSubmitted(false);
+  };
+
+  const handleMobileContinue = async (e) => {
     e.preventDefault();
     setError("");
-    if (!mobileNumber || mobileNumber.length !== 10) {
+    if (!isMobileReady) {
       setError("Please enter a valid 10-digit mobile number");
       return;
     }
+    setLoading(true);
     try {
-      const response = await authService.sendOTP(mobileNumber);
-      if (response.success) {
-        setShowOtpInput(true);
-        setOtpValues(["", "", "", ""]);
-        setTimer(30);
-        setOtpError(false);
-      } else {
-        setError(response.error || "Failed to send OTP");
+      const response = await authService.checkMobile(mobileNumber);
+      if (!response.success) {
+        setError(response.error || "Unable to verify mobile number");
+        return;
       }
-    } catch (error) {
+      resetPinFields();
+      setAutoSubmitted(false);
+      setStep("pin");
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
+      setLoading(false);
     }
   };
 
-  // countdown effect for resend timer
   useEffect(() => {
-    if (!showOtpInput || timer <= 0) return;
+    if (step !== "otp" || timer <= 0) return;
     const id = setInterval(() => {
       setTimer((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(id);
-  }, [showOtpInput, timer]);
+  }, [step, timer]);
 
+  const startOtpFlow = useCallback(
+    async (context, infoMessage) => {
+      setError(infoMessage || "");
+      setOtpContext(context);
+      setLoading(true);
+      try {
+        const response = await authService.requestOtp(mobileNumber);
+        if (response.success) {
+          setStep("otp");
+          setOtpValues(EMPTY_PIN);
+          setTimer(30);
+          setOtpError(false);
+          if (!infoMessage) setError("");
+        } else {
+          setError(response.error || "Failed to send OTP");
+        }
+      } catch {
+        setError("Failed to send OTP. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [mobileNumber]
+  );
 
-  // Auto submit when all 4 OTP digits are entered
-  useEffect(() => {
-    if (!showOtpInput) return;
-    const allFilled = otpValues.every((d) => d && d.length === 1);
-    if (allFilled && !autoSubmitted) {
-      setAutoSubmitted(true);
-      handleVerifyOTP({ preventDefault: () => { } });
-    }
-    if (!allFilled && autoSubmitted) {
-      setAutoSubmitted(false);
-    }
-  }, [showOtpInput, otpValues, autoSubmitted]);
+  const handlePinLogin = useCallback(
+    async (e) => {
+      e?.preventDefault?.();
+      setError("");
+      if (!isMobileReady) {
+        setError("Please enter a valid 10-digit mobile number");
+        return;
+      }
+      const pin = pinValues.join("");
+      if (pin.length !== 4) {
+        setError("Please enter your 4-digit PIN");
+        setPinError(true);
+        return;
+      }
 
-  const handleOtpChange = (index, value) => {
-    if (value.length > 1) value = value[0];
-    if (!/^\d*$/.test(value)) return;
-    const newOtpValues = [...otpValues];
-    newOtpValues[index] = value;
-    setOtpValues(newOtpValues);
-    if (otpError) setOtpError(false);
-    if (value !== "" && index < 3) {
-      otpRefs[index + 1].current.focus();
-    }
-  };
-
-  const handleKeyDown = (index, e) => {
-    if (e.key === "Backspace" && !otpValues[index] && index > 0) {
-      otpRefs[index - 1].current.focus();
-    }
-  };
+      setLoading(true);
+      try {
+        const response = await authService.loginWithPin(mobileNumber, pin);
+        if (response.success) {
+          navigate("/orders", { replace: true });
+          return;
+        }
+        if (response.locked) {
+          setError(
+            response.error ||
+              "Too many failed attempts. Your account is temporarily locked."
+          );
+          setPinError(true);
+          return;
+        }
+        if (response.requiresPinSetup) {
+          await startOtpFlow("setup", response.message);
+          return;
+        }
+        setError(response.error || "Invalid PIN");
+        setPinError(true);
+      } catch {
+        setError("Something went wrong. Please check your connection and try again.");
+        setPinError(true);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [mobileNumber, pinValues, isMobileReady, navigate, startOtpFlow]
+  );
 
   const handleResendOtp = async () => {
-    if (timer > 0) return; // prevent early clicks
+    if (timer > 0) return;
     setError("");
-    setOtpValues(["", "", "", ""]);
+    setOtpValues(EMPTY_PIN);
     setOtpError(false);
+    setLoading(true);
     try {
-      const response = await authService.resendOTP(mobileNumber);
+      const response = await authService.resendOtp(mobileNumber);
       if (response.success) {
         setTimer(30);
       } else {
@@ -99,42 +183,195 @@ function Login() {
     } catch {
       setError("Failed to resend OTP, please try again.");
     } finally {
+      setLoading(false);
     }
   };
 
-  const handleVerifyOTP = async (e) => {
+  const handleVerifyOtp = useCallback(
+    async (e) => {
+      e?.preventDefault?.();
+      setError("");
+      const otp = otpValues.join("");
+      if (otp.length !== 4) {
+        setError("Please enter a valid 4-digit OTP");
+        return;
+      }
+      setLoading(true);
+      try {
+        const response = await authService.verifyOtp(mobileNumber, otp);
+        if (!response.success) {
+          setError(response.error || "Invalid OTP");
+          setOtpError(true);
+          return;
+        }
+        setSetupToken(response.setupToken);
+        setStep("create_pin");
+        resetPinFields();
+        setError("");
+      } catch {
+        setError("Something went wrong. Please try again.");
+        setOtpError(true);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [mobileNumber, otpValues]
+  );
+
+  useEffect(() => {
+    if (step !== "otp") return;
+    const allFilled = otpValues.every((d) => d && d.length === 1);
+    if (allFilled && !autoSubmitted && !loading) {
+      setAutoSubmitted(true);
+      handleVerifyOtp({ preventDefault: () => {} });
+    }
+    if (!allFilled && autoSubmitted) {
+      setAutoSubmitted(false);
+    }
+  }, [step, otpValues, autoSubmitted, loading, handleVerifyOtp]);
+
+  useEffect(() => {
+    if (step !== "pin") return;
+    const allFilled = pinValues.every((d) => d && d.length === 1);
+    if (allFilled && !autoSubmitted && !loading) {
+      setAutoSubmitted(true);
+      handlePinLogin({ preventDefault: () => {} });
+    }
+    if (!allFilled && autoSubmitted) {
+      setAutoSubmitted(false);
+    }
+  }, [step, pinValues, autoSubmitted, loading, handlePinLogin]);
+
+  const handleCreatePinNext = (e) => {
     e.preventDefault();
     setError("");
-    const otp = otpValues.join("");
-    if (!otp || otp.length !== 4) {
-      setError("Please enter a valid 4-digit OTP");
+    const pin = pinValues.join("");
+    if (pin.length !== 4) {
+      setError("Please enter a 4-digit PIN");
+      setPinError(true);
       return;
     }
+    if (pin === "0000" || pin === "1234") {
+      setError("Choose a stronger PIN than common patterns");
+      setPinError(true);
+      return;
+    }
+    setPinError(false);
+    setConfirmPinValues(EMPTY_PIN);
+    setStep("confirm_pin");
+  };
+
+  const handleConfirmPin = async (e) => {
+    e.preventDefault();
+    setError("");
+    const pin = pinValues.join("");
+    const confirm = confirmPinValues.join("");
+    if (confirm.length !== 4) {
+      setError("Please confirm your 4-digit PIN");
+      setPinError(true);
+      return;
+    }
+    if (pin !== confirm) {
+      setError("PINs do not match. Please try again.");
+      setPinError(true);
+      setConfirmPinValues(EMPTY_PIN);
+      setStep("create_pin");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await authService.verifyOTP(mobileNumber, otp);
-      if (response.success) {
-        navigate("/orders");
-      } else {
-        setError(response.error || "Invalid OTP");
-        setOtpError(true);
+      const apiCall =
+        otpContext === "forgot"
+          ? authService.resetPin
+          : authService.setupPin;
+      const response = await apiCall(
+        mobileNumber,
+        pin,
+        setupToken
+      );
+
+      if (!response.success) {
+        setError(response.error || "Failed to save PIN");
+        setPinError(true);
+        return;
       }
-    } catch (error) {
+
+      if (response.token ?? response.access_token) {
+        navigate("/orders", { replace: true });
+        return;
+      }
+
+      const loginResponse = await authService.loginWithPin(mobileNumber, pin);
+      if (loginResponse.success) {
+        navigate("/orders", { replace: true });
+      } else {
+        setError(loginResponse.error || "PIN saved. Please sign in.");
+        goToSignIn();
+      }
+    } catch {
       setError("Something went wrong. Please try again.");
-      setOtpError(true);
+      setPinError(true);
     } finally {
+      setLoading(false);
     }
   };
 
-  const handleBackToLogin = () => {
-    setShowOtpInput(false);
-    setError("");
-    setOtpError(false);
+  const handleOtpChange = (next) => {
+    setOtpValues(next);
+    if (otpError) setOtpError(false);
   };
+
+  const handlePinChange = (next) => {
+    setPinValues(next);
+    if (pinError) setPinError(false);
+  };
+
+  const stepTitle = () => {
+    if (step === "pin") return "Enter your 4-digit PIN";
+    if (step === "otp") {
+      return otpContext === "forgot"
+        ? "Verify OTP to reset PIN"
+        : "Verify OTP to create PIN";
+    }
+    if (step === "create_pin") return "Create your 4-digit PIN";
+    if (step === "confirm_pin") return "Confirm your PIN";
+    return null;
+  };
+
+  const primaryButtonLabel = () => {
+    if (loading) return "Please wait…";
+    if (step === "signin" || step === "pin") return "Sign in";
+    if (step === "otp") return "Verify OTP";
+    if (step === "create_pin") return "Continue";
+    if (step === "confirm_pin") return "Save PIN";
+    return "Continue";
+  };
+
+  const isPrimaryDisabled = () => {
+    if (loading) return true;
+    if (step === "signin") return !isMobileReady;
+    if (step === "pin") return !isPinReady;
+    if (step === "otp") return !isOtpReady;
+    if (step === "create_pin") return !isPinReady;
+    if (step === "confirm_pin") return !isConfirmPinReady;
+    return true;
+  };
+
+  const onSubmit = (e) => {
+    if (step === "signin") return handleMobileContinue(e);
+    if (step === "pin") return handlePinLogin(e);
+    if (step === "otp") return handleVerifyOtp(e);
+    if (step === "create_pin") return handleCreatePinNext(e);
+    if (step === "confirm_pin") return handleConfirmPin(e);
+  };
+
+  const showMobileField =
+    step === "signin" || step === "pin" || step === "otp";
 
   return (
     <div className="flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#f9fafd]">
       <div className="mb-[6px] mt-[11px] flex w-full max-w-[500px] flex-col items-center rounded-[18px] border-[1.8px] border-[#d1d9e4] bg-white px-[32px] pt-[32px] pb-[32px] shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
-        {/* Logo, Title, Subtitle Section */}
         <div className="flex w-full flex-col items-center">
           <img
             src={logo}
@@ -151,9 +388,10 @@ function Login() {
             Sign in to continue to your account
           </div>
         </div>
+
         <form
           id="formAuthentication"
-          onSubmit={showOtpInput ? handleVerifyOTP : handleSendOTP}
+          onSubmit={onSubmit}
           noValidate="novalidate"
           className="w-full"
         >
@@ -165,7 +403,8 @@ function Login() {
               {error}
             </div>
           )}
-          {!showOtpInput && (
+
+          {showMobileField && (
             <div className="mb-[17px]">
               <label
                 htmlFor="mobile"
@@ -188,9 +427,9 @@ function Login() {
                   if (mobileValidationMsg) setMobileValidationMsg("");
                   setMobileNumber(sanitized);
                 }}
-                autoFocus={!showOtpInput}
-                disabled={showOtpInput}
-                className={`mb-[12px] h-[48px] w-full rounded-lg border-[0.6px] px-4 text-[1.08rem] transition-colors duration-200 ${showOtpInput
+                autoFocus={step === "signin"}
+                disabled={step !== "signin"}
+                className={`mb-[12px] h-[48px] w-full rounded-lg border-[0.6px] px-4 text-[1.08rem] transition-colors duration-200 ${step !== "signin"
                     ? "border-gray-200 bg-[#f3f4f7] text-[#a0a4b0]"
                     : "border-[#ddd] bg-white text-[#22242c]"
                   } focus:border-[#178be2] focus:outline-none focus:ring-2 focus:ring-[#178be2]/20`}
@@ -198,67 +437,47 @@ function Login() {
               {mobileValidationMsg && (
                 <div className="mt-1 text-sm text-red-600">{mobileValidationMsg}</div>
               )}
-              <button
-                className={`mt-[12px] flex w-full items-center justify-center rounded-3xl py-[12px] text-[1.11rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${isMobileReady
-                    ? "bg-[#1d4ed8]"
-                    : "cursor-not-allowed bg-[#6c757d]"
-                  }`}
-                type="submit"
-                disabled={!isMobileReady}
-              >
-                {"Send OTP"}
-              </button>
+              {step === "signin" && (
+                <button
+                  className={`mt-[12px] flex w-full items-center justify-center rounded-3xl py-[12px] text-[1.11rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${!isPrimaryDisabled()
+                      ? "bg-[#1d4ed8]"
+                      : "cursor-not-allowed bg-[#6c757d]"
+                    }`}
+                  type="submit"
+                  disabled={isPrimaryDisabled()}
+                >
+                  {primaryButtonLabel()}
+                </button>
+              )}
             </div>
           )}
-          {showOtpInput && (
+
+          {step === "pin" && (
             <div className="mb-[21px]">
               <div className="mb-3 text-center text-[1rem] font-medium text-[#22242c]">
-                Enter the 4-digit code
+                {stepTitle()}
               </div>
-              <div className="mb-4 flex flex-wrap items-center justify-center">
-                {otpValues.map((value, index) => {
-                  const isActive = activeOtpIndex === index && !otpError;
-                  return (
-                    <input
-                      key={index}
-                      ref={otpRefs[index]}
-                      type="text"
-                      className={`m-[15px] h-[50px] w-[70px] rounded-3xl border bg-white text-center text-[1.15rem] transition focus:outline-none ${otpError ? "border-red-500" : "border-[#cbcfd5]"
-                        } ${isActive
-                          ? "ring-4 ring-blue-500/40"
-                          : "shadow-[0_2px_5px_rgba(0,0,0,0.1)]"
-                        }`}
-                      value={value}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(index, e)}
-                      onFocus={() => setActiveOtpIndex(index)}
-                      onBlur={() =>
-                        setActiveOtpIndex((prev) => (prev === index ? null : prev))
-                      }
-                      onMouseEnter={() => setActiveOtpIndex(index)}
-                      onMouseLeave={() =>
-                        setActiveOtpIndex((prev) => (prev === index ? null : prev))
-                      }
-                      maxLength={1}
-                      autoFocus={index === 0}
-                    />
-                  );
-                })}
-              </div>
-              <div className="mb-3 flex flex-wrap items-center justify-center gap-[200px]">
+              <div className="mb-2 flex justify-end">
                 <button
                   type="button"
-                  onClick={handleResendOtp}
-                  disabled={resendDisabled}
-                  className={`text-base rounded-3xl font-medium underline-offset-2 transition ${resendDisabled
-                      ? "cursor-not-allowed text-[#9ca3af]"
-                      : "text-[#2563eb] hover:underline"
-                    }`}
+                  onClick={() => setShowPin((v) => !v)}
+                  className="text-sm font-medium text-[#2563eb] hover:underline"
                 >
-                  {resendDisabled ? `Resend OTP (${timer}s)` : "Resend OTP"}
+                  {showPin ? "Hide PIN" : "Show PIN"}
                 </button>
+              </div>
+              <PinInput
+                values={pinValues}
+                onChange={handlePinChange}
+                pinError={pinError}
+                activeIndex={activePinIndex}
+                onActiveIndexChange={setActivePinIndex}
+                hidden={!showPin}
+                autoFocusIndex={0}
+              />
+              <div className="mb-3 flex justify-center">
                 <button
-                  onClick={handleBackToLogin}
+                  onClick={goToSignIn}
                   type="button"
                   className="text-base rounded-3xl font-medium text-[#2563eb] underline-offset-2 hover:underline"
                 >
@@ -266,18 +485,119 @@ function Login() {
                 </button>
               </div>
               <button
-                className={`flex w-full items-center justify-center rounded-3xl py-[14px] text-[1.1rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${isOtpReady ? "bg-[#1d4ed8]" : "cursor-not-allowed bg-[#6c757d]"
+                className={`flex w-full items-center justify-center rounded-3xl py-[14px] text-[1.1rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${!isPrimaryDisabled()
+                    ? "bg-[#1d4ed8]"
+                    : "cursor-not-allowed bg-[#6c757d]"
                   }`}
                 type="submit"
-                disabled={!isOtpReady}
+                disabled={isPrimaryDisabled()}
               >
-                {"Verify OTP"}
+                {primaryButtonLabel()}
               </button>
+            </div>
+          )}
+
+          {(step === "otp" ||
+            step === "create_pin" ||
+            step === "confirm_pin") && (
+            <div className="mb-[21px]">
+              {stepTitle() && (
+                <div className="mb-3 text-center text-[1rem] font-medium text-[#22242c]">
+                  {stepTitle()}
+                </div>
+              )}
+
+              {step === "otp" && (
+                <>
+                  <PinInput
+                    values={otpValues}
+                    onChange={handleOtpChange}
+                    pinError={otpError}
+                    activeIndex={activeOtpIndex}
+                    onActiveIndexChange={setActiveOtpIndex}
+                    hidden={false}
+                  />
+                  <div className="mb-3 flex flex-wrap items-center justify-center gap-[200px]">
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      disabled={resendDisabled || loading}
+                      className={`text-base rounded-3xl font-medium underline-offset-2 transition ${resendDisabled
+                          ? "cursor-not-allowed text-[#9ca3af]"
+                          : "text-[#2563eb] hover:underline"
+                        }`}
+                    >
+                      {resendDisabled ? `Resend OTP (${timer}s)` : "Resend OTP"}
+                    </button>
+                    <button
+                      onClick={goToSignIn}
+                      type="button"
+                      className="text-base rounded-3xl font-medium text-[#2563eb] underline-offset-2 hover:underline"
+                    >
+                      Back to login
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {(step === "create_pin" || step === "confirm_pin") && (
+                <>
+                  <div className="mb-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowPin((v) => !v)}
+                      className="text-sm font-medium text-[#2563eb] hover:underline"
+                    >
+                      {showPin ? "Hide PIN" : "Show PIN"}
+                    </button>
+                  </div>
+                  <PinInput
+                    values={
+                      step === "confirm_pin" ? confirmPinValues : pinValues
+                    }
+                    onChange={
+                      step === "confirm_pin"
+                        ? (next) => {
+                            setConfirmPinValues(next);
+                            if (pinError) setPinError(false);
+                          }
+                        : handlePinChange
+                    }
+                    pinError={pinError}
+                    activeIndex={activePinIndex}
+                    onActiveIndexChange={setActivePinIndex}
+                    hidden={!showPin}
+                  />
+                  {step === "confirm_pin" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep("create_pin");
+                        setConfirmPinValues(EMPTY_PIN);
+                        setError("");
+                      }}
+                      className="mb-3 w-full text-center text-base font-medium text-[#2563eb] hover:underline"
+                    >
+                      Change PIN
+                    </button>
+                  )}
+                </>
+              )}
+
+              <button
+                  className={`flex w-full items-center justify-center rounded-3xl py-[14px] text-[1.1rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${!isPrimaryDisabled()
+                      ? "bg-[#1d4ed8]"
+                      : "cursor-not-allowed bg-[#6c757d]"
+                    }`}
+                  type="submit"
+                  disabled={isPrimaryDisabled()}
+                >
+                  {primaryButtonLabel()}
+                </button>
             </div>
           )}
         </form>
 
-        {/* Footer Links Section */}
         <nav className="w-full border-t border-[#e5e7eb] pt-[24px] pb-[20px]">
           <div className="mb-[20px] flex justify-center gap-[34px] text-[0.9rem] font-[450] text-[#757c8a]">
             <a href="https://menumitra.com/" className="no-underline transition hover:text-[#22242c]">
@@ -294,7 +614,6 @@ function Login() {
             </a>
           </div>
 
-          {/* Social Icons */}
           <div className="mb-[16px] flex items-center justify-center gap-[30px]">
             <a
               href="https://menumitra.com/"
@@ -334,9 +653,8 @@ function Login() {
             </a>
           </div>
 
-          {/* Version Info */}
           <div className="flex items-center justify-center gap-2 text-xs text-[#757c8a]">
-            <span className="font-medium">Version 2.2.0</span>
+            <span className="font-medium">Version 2.3.0</span>
             <span className="mx-[3px]">|</span>
             <span className="font-normal">17 March 2026</span>
           </div>

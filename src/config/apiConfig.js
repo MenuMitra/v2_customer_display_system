@@ -31,8 +31,11 @@ const CONFIG = {
 
 const { API_HOST, WS_URL } = CONFIG[CURRENT_ENV];
 
+/** Must match `app_type` on /v2.3/common/verify_pin and `app_source` on CDS APIs. */
+export const CDS_APP_SOURCE = "cds";
+
 // Common base paths used across the app
-const V2_COMMON_BASE = `${API_HOST}/v2.2/common`;
+const V2_COMMON_BASE = `${API_HOST}/v2.3/common`;
 const COMMON_API_BASE = `${API_HOST}/common_api`;
 const API_BASE = `${API_HOST}/api`;
 
