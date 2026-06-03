@@ -129,16 +129,15 @@ function Header({ outletName, onRefresh }) {
       setSingleOutlet(true);
       setSingleOutletName(only.name || "");
       setSingleOutletData(only);
-      if (
-        persisted &&
-        Number(persisted.outlet_id) === Number(only.outlet_id) &&
-        Number(only.outlet_status) !== 0
-      ) {
+      if (Number(only.outlet_status) !== 0) {
+        // Auto-select the only available outlet — no manual click needed
         setSelectedOutlet(only);
         writePersistedSelectedOutlet(only);
         setError("");
       } else {
         setSelectedOutlet(null);
+        writePersistedSelectedOutlet(null);
+        setError("Cannot select outlet because it is inactive. Please activate the outlet first.");
       }
       setIsSelectionValidated(true);
       return;
