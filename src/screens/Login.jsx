@@ -15,7 +15,7 @@ function Login() {
 
   const [mobileNumber, setMobileNumber] = useState("");
   const [mobileValidationMsg, setMobileValidationMsg] = useState("");
-  const [pinValues, setPinValues] = useState(EMPTY_PIN);
+  const [pinValues, setPinValues] = useState(EMPTY_PIN); // Still needed for PIN setup flow
   const [confirmPinValues, setConfirmPinValues] = useState(EMPTY_PIN);
   const [otpValues, setOtpValues] = useState(EMPTY_PIN);
   const [showPin, setShowPin] = useState(false);
@@ -75,12 +75,17 @@ function Login() {
     try {
       const response = await authService.checkMobile(mobileNumber);
       if (!response.success) {
-        setError(response.error || "Unable to verify mobile number");
+        setError(response.error || "User with this mobile number does not exist");
         return;
       }
-      resetPinFields();
-      setAutoSubmitted(false);
-      setStep("pin");
+      // Navigate to separate PIN screen
+      navigate("/pin-login", { 
+        state: { 
+          mobileNumber,
+          role: response.role 
+        },
+        replace: false
+      });
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -119,52 +124,6 @@ function Login() {
       }
     },
     [mobileNumber]
-  );
-
-  const handlePinLogin = useCallback(
-    async (e) => {
-      e?.preventDefault?.();
-      setError("");
-      if (!isMobileReady) {
-        setError("Please enter a valid 10-digit mobile number");
-        return;
-      }
-      const pin = pinValues.join("");
-      if (pin.length !== 4) {
-        setError("Please enter your 4-digit PIN");
-        setPinError(true);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const response = await authService.loginWithPin(mobileNumber, pin);
-        if (response.success) {
-          navigate("/orders", { replace: true });
-          return;
-        }
-        if (response.locked) {
-          setError(
-            response.error ||
-              "Too many failed attempts. Your account is temporarily locked."
-          );
-          setPinError(true);
-          return;
-        }
-        if (response.requiresPinSetup) {
-          await startOtpFlow("setup", response.message);
-          return;
-        }
-        setError(response.error || "Invalid PIN");
-        setPinError(true);
-      } catch {
-        setError("Something went wrong. Please check your connection and try again.");
-        setPinError(true);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [mobileNumber, pinValues, isMobileReady, navigate, startOtpFlow]
   );
 
   const handleResendOtp = async () => {
@@ -229,18 +188,6 @@ function Login() {
       setAutoSubmitted(false);
     }
   }, [step, otpValues, autoSubmitted, loading, handleVerifyOtp]);
-
-  useEffect(() => {
-    if (step !== "pin") return;
-    const allFilled = pinValues.every((d) => d && d.length === 1);
-    if (allFilled && !autoSubmitted && !loading) {
-      setAutoSubmitted(true);
-      handlePinLogin({ preventDefault: () => {} });
-    }
-    if (!allFilled && autoSubmitted) {
-      setAutoSubmitted(false);
-    }
-  }, [step, pinValues, autoSubmitted, loading, handlePinLogin]);
 
   const handleCreatePinNext = (e) => {
     e.preventDefault();
@@ -360,14 +307,14 @@ function Login() {
 
   const onSubmit = (e) => {
     if (step === "signin") return handleMobileContinue(e);
-    if (step === "pin") return handlePinLogin(e);
     if (step === "otp") return handleVerifyOtp(e);
     if (step === "create_pin") return handleCreatePinNext(e);
     if (step === "confirm_pin") return handleConfirmPin(e);
   };
 
-  const showMobileField =
-    step === "signin" || step === "pin" || step === "otp";
+  const showMobileField = step === "signin";
+  const showPinScreen = false; // PIN is now on separate route
+  const showOtpScreen = step === "otp" || step === "create_pin" || step === "confirm_pin";
 
   return (
     <div className="flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#f9fafd]">
@@ -427,65 +374,14 @@ function Login() {
                   if (mobileValidationMsg) setMobileValidationMsg("");
                   setMobileNumber(sanitized);
                 }}
-                autoFocus={step === "signin"}
-                disabled={step !== "signin"}
-                className={`mb-[12px] h-[48px] w-full rounded-lg border-[0.6px] px-4 text-[1.08rem] transition-colors duration-200 ${step !== "signin"
-                    ? "border-gray-200 bg-[#f3f4f7] text-[#a0a4b0]"
-                    : "border-[#ddd] bg-white text-[#22242c]"
-                  } focus:border-[#178be2] focus:outline-none focus:ring-2 focus:ring-[#178be2]/20`}
+                autoFocus={true}
+                className="mb-[12px] h-[48px] w-full rounded-lg border-[0.6px] border-[#ddd] bg-white px-4 text-[1.08rem] text-[#22242c] transition-colors duration-200 focus:border-[#178be2] focus:outline-none focus:ring-2 focus:ring-[#178be2]/20"
               />
               {mobileValidationMsg && (
                 <div className="mt-1 text-sm text-red-600">{mobileValidationMsg}</div>
               )}
-              {step === "signin" && (
-                <button
-                  className={`mt-[12px] flex w-full items-center justify-center rounded-3xl py-[12px] text-[1.11rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${!isPrimaryDisabled()
-                      ? "bg-[#1d4ed8]"
-                      : "cursor-not-allowed bg-[#6c757d]"
-                    }`}
-                  type="submit"
-                  disabled={isPrimaryDisabled()}
-                >
-                  {primaryButtonLabel()}
-                </button>
-              )}
-            </div>
-          )}
-
-          {step === "pin" && (
-            <div className="mb-[21px]">
-              <div className="mb-3 text-center text-[1rem] font-medium text-[#22242c]">
-                {stepTitle()}
-              </div>
-              <div className="mb-2 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowPin((v) => !v)}
-                  className="text-sm font-medium text-[#2563eb] hover:underline"
-                >
-                  {showPin ? "Hide PIN" : "Show PIN"}
-                </button>
-              </div>
-              <PinInput
-                values={pinValues}
-                onChange={handlePinChange}
-                pinError={pinError}
-                activeIndex={activePinIndex}
-                onActiveIndexChange={setActivePinIndex}
-                hidden={!showPin}
-                autoFocusIndex={0}
-              />
-              <div className="mb-3 flex justify-center">
-                <button
-                  onClick={goToSignIn}
-                  type="button"
-                  className="text-base rounded-3xl font-medium text-[#2563eb] underline-offset-2 hover:underline"
-                >
-                  Back to login
-                </button>
-              </div>
               <button
-                className={`flex w-full items-center justify-center rounded-3xl py-[14px] text-[1.1rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${!isPrimaryDisabled()
+                className={`mt-[12px] flex w-full items-center justify-center rounded-3xl py-[12px] text-[1.11rem] font-semibold text-white shadow-[0_1px_4px_rgba(44,51,73,0.07)] transition ${!isPrimaryDisabled()
                     ? "bg-[#1d4ed8]"
                     : "cursor-not-allowed bg-[#6c757d]"
                   }`}
@@ -497,9 +393,7 @@ function Login() {
             </div>
           )}
 
-          {(step === "otp" ||
-            step === "create_pin" ||
-            step === "confirm_pin") && (
+          {showOtpScreen && (
             <div className="mb-[21px]">
               {stepTitle() && (
                 <div className="mb-3 text-center text-[1rem] font-medium text-[#22242c]">
