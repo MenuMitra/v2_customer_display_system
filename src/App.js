@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardScreen from './screens/DashboardScreen';
 import OrdersScreen from './screens/OrdersScreen';
 import Login from './screens/Login';
+import PinLogin from './screens/PinLogin';
 import ProtectedRoute from './components/ProtectedRoute';
 import "remixicon/fonts/remixicon.css";
 
@@ -11,9 +12,8 @@ function App() {
 
       <Routes>
         {/* Public Routes */}
-        {/* <Route path="/login" element={<LoginScreen />} /> */}
         <Route path="/login" element={<Login />} />
-        {/* <Route path="/dashboard" element={<DashboardScreen />} /> */}
+        <Route path="/pin-login" element={<PinLogin />} />
         
         {/* Protected Routes */}
         <Route 
@@ -34,4 +34,3 @@ function App() {
 }
 
 export default App;
-  
