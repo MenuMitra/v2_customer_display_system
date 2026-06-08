@@ -476,7 +476,7 @@ function Header({ outletName, onRefresh }) {
   };
 
   const renderOrdersInSection = (statusFilter, title, bgColorClass) => (
-    <div className={`flex-1 w-full h-full px-2 py-3 overflow-y-auto sm:px-3 sm:py-4 md:px-4 md:py-5 ${bgColorClass}`}>
+    <div className={`flex-1 w-full px-2 py-3 sm:px-3 sm:py-4 md:px-4 md:py-5 ${bgColorClass}`}>
       <h3 className="mb-2 text-center text-lg font-bold tracking-wide text-white sm:mb-3 sm:text-xl sm:tracking-wider md:mb-4 md:text-2xl lg:text-3xl xl:text-4xl">
         {title}
       </h3>
@@ -553,7 +553,7 @@ function Header({ outletName, onRefresh }) {
         </div>
       )}
 
-      <header className="bg-white shadow-lg relative mt-0 mb-4">
+      <header className="bg-white shadow-lg sticky top-0 z-50 mt-0 mb-4">
         <nav className="bg-[#ffffff] py-1 sm:py-1.5 md:py-2 overflow-visible">
           <div className="relative flex w-full items-center justify-between px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 overflow-visible">
             {/* Brand/Logo with Outlet Dropdown */}
@@ -754,13 +754,13 @@ function Header({ outletName, onRefresh }) {
       )}
 
       {/* Orders Display Sections */}
-      <div className="orders-container h-[calc(100vh-60px)] w-full bg-white p-0 overflow-hidden sm:h-[calc(100vh-70px)] md:h-[calc(100vh-80px)]">
+      <div className="orders-container min-h-[calc(100vh-60px)] w-full bg-white p-0 sm:min-h-[calc(100vh-70px)] md:min-h-[calc(100vh-80px)] flex flex-col">
         {!selectedOutlet ? (
           <div className="w-full border-y border-amber-300 bg-amber-100 py-2 text-center text-xs font-medium text-amber-900 sm:py-3 sm:text-sm md:py-4 md:text-base">
             Please select an outlet to view orders.
           </div>
         ) : (
-          <div className="h-full flex flex-col">
+          <div className="flex-1 flex flex-col">
             {error && (
               <div
                 className="mx-2 mt-2 flex-shrink-0 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-xs font-bold text-red-600 sm:mx-3 sm:mt-3 sm:px-4 sm:py-2.5 sm:text-sm md:mx-4 md:mt-4 md:px-5 md:py-3 md:text-base"
@@ -774,7 +774,7 @@ function Header({ outletName, onRefresh }) {
               <SubscriptionRemainDay selectedOutlet={selectedOutlet} dateRange={dateRange} />
             </div>
 
-            <div className="flex flex-1 flex-col overflow-x-auto sm:flex-row sm:items-stretch">
+            <div className="flex-1 flex flex-col sm:flex-row sm:items-stretch">
               {/* PLACED */}
               {renderOrdersInSection("placed", "PLACED", "bg-[#6c757d]")}
               {/* COOKING */}
