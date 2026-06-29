@@ -129,16 +129,13 @@ function Header({ outletName, onRefresh }) {
       setSingleOutlet(true);
       setSingleOutletName(only.name || "");
       setSingleOutletData(only);
-      if (
-        persisted &&
-        Number(persisted.outlet_id) === Number(only.outlet_id) &&
-        Number(only.outlet_status) !== 0
-      ) {
+      if (Number(only.outlet_status) !== 0) {
         setSelectedOutlet(only);
         writePersistedSelectedOutlet(only);
         setError("");
       } else {
         setSelectedOutlet(null);
+        writePersistedSelectedOutlet(null);
       }
       setIsSelectionValidated(true);
       return;
