@@ -440,7 +440,7 @@ function Header({ outletName, onRefresh }) {
       <div className="mb-2 rounded-3xl bg-white p-1 shadow-sm transition-shadow hover:shadow-md sm:mb-3 sm:p-3 md:mb-4 md:p-2">
         <div className="flex items-center justify-between gap-2">
           <h2 className="truncate text-base font-bold text-gray-900 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
-            #{order.order_number}
+            {order.order_number}
           </h2>
           <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
             {(showMenuCount || showComboCount) && (
@@ -470,10 +470,13 @@ function Header({ outletName, onRefresh }) {
   };
 
   const renderOrdersInSection = (statusFilter, title, bgColorClass) => (
-    <div className={`flex-1 w-full h-full px-2 py-3 overflow-y-auto sm:px-3 sm:py-4 md:px-4 md:py-5 ${bgColorClass}`}>
-      <h3 className="mb-2 text-center text-lg font-bold tracking-wide text-white sm:mb-3 sm:text-xl sm:tracking-wider md:mb-4 md:text-2xl lg:text-3xl xl:text-4xl">
-        {title}
-      </h3>
+    <div className={`flex-1 w-full px-2 py-3 sm:px-3 sm:py-4 md:px-4 md:py-5 ${bgColorClass}`}>
+      <div className="mb-2 sm:mb-3 md:mb-4">
+        <h3 className="text-center text-lg font-bold tracking-wide text-[#FFFFFF] [text-shadow:0_1px_3px_rgba(0,0,0,0.45)] sm:text-xl sm:tracking-wider md:text-2xl lg:text-3xl xl:text-4xl">
+          {title}
+        </h3>
+        <div className="mx-auto mt-2 h-[2px] w-full max-w-[90%] bg-[#FFFFFF] sm:mt-2.5 md:mt-3" />
+      </div>
       {error ? (
         <div
           className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-xs font-medium text-red-600 sm:mt-3 sm:px-4 sm:py-2.5 sm:text-sm md:mt-4 md:px-5 md:py-3 md:text-base"
@@ -748,13 +751,13 @@ function Header({ outletName, onRefresh }) {
       )}
 
       {/* Orders Display Sections */}
-      <div className="orders-container h-[calc(100vh-60px)] w-full bg-white p-0 overflow-hidden sm:h-[calc(100vh-70px)] md:h-[calc(100vh-80px)]">
+      <div className="orders-container flex min-h-[calc(100vh-60px)] w-full flex-col bg-white p-0 sm:min-h-[calc(100vh-70px)] md:min-h-[calc(100vh-80px)]">
         {!selectedOutlet ? (
           <div className="w-full border-y border-amber-300 bg-amber-100 py-2 text-center text-xs font-medium text-amber-900 sm:py-3 sm:text-sm md:py-4 md:text-base">
             Please select an outlet to view orders.
           </div>
         ) : (
-          <div className="h-full flex flex-col">
+          <div className="flex min-h-[calc(100vh-60px)] flex-1 flex-col sm:min-h-[calc(100vh-70px)] md:min-h-[calc(100vh-80px)]">
             {error && (
               <div
                 className="mx-2 mt-2 flex-shrink-0 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-xs font-bold text-red-600 sm:mx-3 sm:mt-3 sm:px-4 sm:py-2.5 sm:text-sm md:mx-4 md:mt-4 md:px-5 md:py-3 md:text-base"
@@ -768,13 +771,13 @@ function Header({ outletName, onRefresh }) {
               <SubscriptionRemainDay selectedOutlet={selectedOutlet} dateRange={dateRange} />
             </div>
 
-            <div className="flex flex-1 flex-col overflow-x-auto sm:flex-row sm:items-stretch">
+            <div className="flex flex-1 flex-col sm:flex-row sm:items-stretch">
               {/* PLACED */}
-              {renderOrdersInSection("placed", "PLACED", "bg-[#6c757d]")}
+              {renderOrdersInSection("placed", "PLACED", "bg-[#848b92]")}
               {/* COOKING */}
-              {renderOrdersInSection("ongoing", "COOKING", "bg-[#ffc107]")}
+              {renderOrdersInSection("ongoing", "COOKING", "bg-[#ffcb2f]")}
               {/* PICKUP */}
-              {renderOrdersInSection("completed", "PICKUP", "bg-[#198754]")}
+              {renderOrdersInSection("completed", "PICKUP", "bg-[#3e9a6f]")}
             </div>
           </div>
         )}
