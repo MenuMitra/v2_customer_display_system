@@ -157,7 +157,7 @@ function PinLogin() {
             <div className="mb-3 text-center text-[1rem] font-medium text-[#22242c]">
               Enter your 4-digit PIN for {mobileNumber}
             </div>
-            <div className="mb-2 flex justify-end">
+            <div className="mb-2 flex justify-center">
               <button
                 type="button"
                 onClick={() => setShowPin((v) => !v)}
@@ -209,7 +209,7 @@ function PinLogin() {
             <a href="https://menumitra.com/contact" className="no-underline transition hover:text-[#22242c]">
               Contact
             </a>
-            <a href="https://menumitra.com/about" className="no-underline transition hover:text-[#22242c]">
+            <a href="https://menumitra.com/customer-care" className="no-underline transition hover:text-[#22242c]">
               Support
             </a>
           </div>

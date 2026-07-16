@@ -446,7 +446,7 @@ function Header({ outletName, onRefresh }) {
       <div className="mb-2 rounded-3xl bg-white p-1 shadow-sm transition-shadow hover:shadow-md sm:mb-3 sm:p-3 md:mb-4 md:p-2">
         <div className="flex items-center justify-between gap-2">
           <h2 className="truncate text-base font-bold text-gray-900 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">
-            #{order.order_number}
+            {order.order_number}
           </h2>
           <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
             {(showMenuCount || showComboCount) && (
@@ -776,11 +776,11 @@ function Header({ outletName, onRefresh }) {
 
             <div className="flex-1 flex flex-col sm:flex-row sm:items-stretch">
               {/* PLACED */}
-              {renderOrdersInSection("placed", "PLACED", "bg-[#6c757d]")}
+              {renderOrdersInSection("placed", "PLACED", "bg-[#848b92]")}
               {/* COOKING */}
-              {renderOrdersInSection("ongoing", "COOKING", "bg-[#ffc107]")}
+              {renderOrdersInSection("ongoing", "COOKING", "bg-[#ffcb2f]")}
               {/* PICKUP */}
-              {renderOrdersInSection("completed", "PICKUP", "bg-[#198754]")}
+              {renderOrdersInSection("completed", "PICKUP", "bg-[#3e9a6f]")}
             </div>
           </div>
         )}

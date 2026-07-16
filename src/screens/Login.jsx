@@ -503,7 +503,7 @@ function Login() {
             <a href="https://menumitra.com/contact" className="no-underline transition hover:text-[#22242c]">
               Contact
             </a>
-            <a href="https://menumitra.com/about" className="no-underline transition hover:text-[#22242c]">
+            <a href="https://menumitra.com/customer-care" className="no-underline transition hover:text-[#22242c]">
               Support
             </a>
           </div>
