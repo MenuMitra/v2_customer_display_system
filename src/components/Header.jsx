@@ -477,9 +477,12 @@ function Header({ outletName, onRefresh }) {
 
   const renderOrdersInSection = (statusFilter, title, bgColorClass) => (
     <div className={`flex-1 w-full px-2 py-3 sm:px-3 sm:py-4 md:px-4 md:py-5 ${bgColorClass}`}>
-      <h3 className="mb-2 text-center text-lg font-bold tracking-wide text-white sm:mb-3 sm:text-xl sm:tracking-wider md:mb-4 md:text-2xl lg:text-3xl xl:text-4xl">
-        {title}
-      </h3>
+      <div className="mb-2 sm:mb-3 md:mb-4">
+        <h3 className="text-center text-lg font-bold tracking-wide text-[#FFFFFF] [text-shadow:0_1px_3px_rgba(0,0,0,0.45)] sm:text-xl sm:tracking-wider md:text-2xl lg:text-3xl xl:text-4xl">
+          {title}
+        </h3>
+        <div className="mx-auto mt-2 h-[2px] w-full max-w-[90%] bg-[#FFFFFF] sm:mt-2.5 md:mt-3" />
+      </div>
       {error ? (
         <div
           className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-xs font-medium text-red-600 sm:mt-3 sm:px-4 sm:py-2.5 sm:text-sm md:mt-4 md:px-5 md:py-3 md:text-base"
